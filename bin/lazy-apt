@@ -1,0 +1,6 @@
+#!/bin/sh
+set -e
+! dir-is-empty "/var/lib/apt/lists" || apt-get update -q
+apt-get install -qy "$@"
+export cleanup
+image-cleanup

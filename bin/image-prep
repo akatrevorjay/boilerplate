@@ -1,0 +1,12 @@
+#!/bin/sh
+set -e
+
+cleanup=no lazy-apt --no-install-recommends \
+	gosu \
+	dumb-init \
+	curl \
+	&& :
+
+$(basename "$0")-entrykit
+
+image-cleanup

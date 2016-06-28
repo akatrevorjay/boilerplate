@@ -1,0 +1,8 @@
+#!/bin/sh
+
+case "$cleanup" in
+	F*|f*|N*|n*|0) exit 0 ;;
+esac
+
+apt-get clean
+rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* ~/.cache

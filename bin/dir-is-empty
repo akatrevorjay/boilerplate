@@ -1,0 +1,4 @@
+#!/bin/sh
+set -e
+[ $# -gt 0 ] || set -- .
+test -z "$(find "$@" -maxdepth 1 -print -quit)"

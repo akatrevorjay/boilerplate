@@ -1,0 +1,12 @@
+#!/bin/sh
+set -e
+
+: ${dest:="/usr/local/bin"}
+: ${version:=0.4.0}
+: ${url:="https://github.com/progrium/entrykit/releases/download/v${version}/entrykit_${version}_$(uname -s)_$(uname -m).tgz"}
+
+curl -sL "$url" \
+  | tar -xvC "$TMPDIR" \
+mv "$TMPDIR/entrykit" "$dest/"
+chmod +x "$dest/entrykit"
+entrykit --symlink

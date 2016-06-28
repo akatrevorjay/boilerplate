@@ -1,0 +1,27 @@
+#!/bin/sh
+set -e
+
+name="$1"; shift
+fn="/etc/apt/sources.list.d/$name.list"
+echo "- Adding APT repo(s): $name => $fn"
+
+test -e "$fn" || touch "$fn"
+cp -pv "$fn" "$fn.new"
+
+for $repo in "$@"; do
+	if egrep "^$repo\$" "$fn"; then
+		echo "- Already exists: [$name] $repo" >&2
+		continue
+	fi
+	echo "- Adding repo: [$name] $repo" >&2
+	echo "$repo" >> "$fn.new"
+done
+
+if cmp "$fn.new" "$fn"; then
+	rm -fv "$fn.new"
+else
+	mv -v "$fn.new" "$fn"
+
+	# Force an apt update to occur next lazy-apt
+	rm -rf /var/lib/apt/lists/*
+fi
