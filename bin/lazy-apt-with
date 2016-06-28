@@ -1,0 +1,20 @@
+#!/bin/bash
+set -e
+
+pkgs=""
+for arg in "$@"; do
+	shift
+	[[ "$arg" != "--" ]] || break
+
+	pkgs+="$arg "
+done
+
+cleanup=no lazy-apt $pkgs
+
+"$@"
+
+apt-get purge --auto-remove -y \
+	$pkgs
+
+export cleanup
+image-cleanup

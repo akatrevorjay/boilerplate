@@ -1,11 +1,11 @@
-#!/bin/sh
-set -e
+#!/bin/bash
+set -exv
 
 cleanup=no lazy-apt --no-install-recommends \
 	gosu \
-	dumb-init \
 	curl \
 	&& :
+	#dumb-init \
 
 $(basename "$0")-entrykit
 

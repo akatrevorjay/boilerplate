@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 set -e
 
 name="$1"; shift
@@ -9,12 +9,21 @@ test -e "$fn" || touch "$fn"
 cp -pv "$fn" "$fn.new"
 
 for $repo in "$@"; do
-	if egrep "^$repo\$" "$fn"; then
-		echo "- Already exists: [$name] $repo" >&2
-		continue
-	fi
-	echo "- Adding repo: [$name] $repo" >&2
-	echo "$repo" >> "$fn.new"
+	case "$repo" in
+		deb*)
+			if egrep "^$repo\$" "$fn"; then
+				echo "- Already exists: [$name] $repo" >&2
+				continue
+			fi
+			echo "- Adding source: [$name] $repo" >&2
+			echo "$repo" >> "$fn.new"
+			;;
+		*://*.list)
+			# appears to be a url, treat it as a remote include
+			echo "- Adding sources from URL: [$name] $repo"
+			curl -sL "$repo" | tee -a "$fn.new"
+			;;
+	esac
 done
 
 if cmp "$fn.new" "$fn"; then

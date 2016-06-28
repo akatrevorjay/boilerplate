@@ -1,7 +1,7 @@
-#!/bin/sh
+#!/bin/bash
 
-case "$cleanup" in
-	F*|f*|N*|n*|0) exit 0 ;;
+case "${cleanup,,}" in
+	false|f|no|nope|n|0) exit 0 ;;
 esac
 
 apt-get clean
