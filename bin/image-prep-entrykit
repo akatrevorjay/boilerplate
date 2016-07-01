@@ -1,14 +1,12 @@
 #!/bin/bash
-set -exv
+set -eo pipefail -xv
 
 : ${dest:="/usr/local/bin"}
 : ${version:=0.4.0}
 : ${url:="https://github.com/progrium/entrykit/releases/download/v${version}/entrykit_${version}_$(uname -s)_$(uname -m).tgz"}
 
-: ${TMPDIR:="/tmp"}
-
-curl -sLo seriously.tgz "$url"
-tar -zvxf seriously.tgz -C "$TMPDIR"
-mv "$TMPDIR/entrykit" "$dest/"
+curl -sL "$url" \
+	| tar -zvxC "$dest/" entrykit
 chmod +x "$dest/entrykit"
+
 entrykit --symlink

@@ -2,10 +2,11 @@
 set -exv
 
 cleanup=no lazy-apt --no-install-recommends \
-	gosu \
+	ca-certificates \
+	ssl-cert \
 	curl \
+	gosu \
 	&& :
-	#dumb-init \
 
 $(basename "$0")-entrykit
 
