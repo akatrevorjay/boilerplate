@@ -7,8 +7,8 @@ set -exv
 
 : ${TMPDIR:="/tmp"}
 
-curl -sL "$url" \
-  | tar -zxvC "$TMPDIR"
+curl -sLo seriously.tgz "$url"
+tar -zvxf seriously.tgz -C "$TMPDIR"
 mv "$TMPDIR/entrykit" "$dest/"
 chmod +x "$dest/entrykit"
 entrykit --symlink
