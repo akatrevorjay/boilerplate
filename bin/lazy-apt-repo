@@ -8,7 +8,7 @@ echo "- Adding APT repo(s): $name => $fn"
 test -e "$fn" || touch "$fn"
 cp -pv "$fn" "$fn.new"
 
-for $repo in "$@"; do
+for repo in "$@"; do
 	case "$repo" in
 		deb*)
 			if egrep "^$repo\$" "$fn"; then
