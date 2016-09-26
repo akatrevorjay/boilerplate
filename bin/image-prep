@@ -8,6 +8,4 @@ cleanup=no lazy-apt --no-install-recommends \
 	gosu \
 	&& :
 
-$(basename "$0")-entrykit
-
 image-cleanup
