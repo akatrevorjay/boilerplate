@@ -40,7 +40,7 @@ RUN set -exv \
       \
       # Common
       curl \
-	  ca-certificates \
+      ca-certificates \
       #ssl-cert \
       \
       # Needed at runtime by pyopenssl for exxo build of salt-apply-state-layer
