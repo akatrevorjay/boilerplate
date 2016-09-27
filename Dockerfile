@@ -35,9 +35,6 @@ RUN set -exv \
       # Deps: wait-for-linked-services
       netcat \
       \
-      # Niceties
-      dumb-init gosu \
-      \
       # Common
       curl \
       ca-certificates \
@@ -45,6 +42,9 @@ RUN set -exv \
       \
       # Needed at runtime by pyopenssl for exxo build of salt-apply-state-layer
       # libssl1.0.0 \
+      \
+      # Niceties
+      dumb-init gosu \
  && :
 
 ADD build.d $IMAGE_ROOT/build.d
