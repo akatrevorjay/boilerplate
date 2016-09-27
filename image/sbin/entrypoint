@@ -1,0 +1,10 @@
+#!/bin/bash
+set -eo pipefail
+. "$IMAGE_ROOT/lib.sh"
+
+entrypoint_hook "pre"
+
+# Env hook
+[[ -z "$APP_ENV" ]] || entrypoint_hook "env_$APP_ENV"
+
+entrypoint_exec "$@"

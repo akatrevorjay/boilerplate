@@ -1,0 +1,3 @@
+#!/bin/bash -e
+# I hate not having Zsh.
+useradd -s "$(which bash)" -m -U "$APP_USER"

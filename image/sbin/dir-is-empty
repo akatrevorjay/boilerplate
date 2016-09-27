@@ -1,0 +1,4 @@
+#!/bin/bash
+set -eo pipefail
+[ $# -gt 0 ] || set -- .
+test -z "$(find "$@" -maxdepth 1 -print -quit)"

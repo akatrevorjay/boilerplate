@@ -1,0 +1,29 @@
+#!/bin/bash
+set -e
+ensure-apt-lists
+
+declare -a debs=() pkgs=()
+for arg in "$@"; do
+    case "$arg" in
+        *.deb)  debs+=("$arg") ;;
+        *)      pkgs+=("$arg") ;;
+    esac
+done
+
+if [ ${#debs[@]} -gt 0 ]; then
+    echo "- debs: ${debs[@]}"
+    set -xv
+    dpkg -i "${debs[@]}"
+    apt-get -f install
+    set +xv
+fi
+
+if [ ${#pkgs[@]} -gt 0 ]; then
+    echo "- pkgs: ${pkgs[@]}"
+    set -xv
+    apt-get install -qy "${pkgs[@]}"
+    set +xv
+fi
+
+export cleanup
+image-cleanup
