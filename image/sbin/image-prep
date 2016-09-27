@@ -1,0 +1,11 @@
+#!/bin/bash
+set -exv
+
+cleanup=no lazy-apt --no-install-recommends \
+	ca-certificates \
+	ssl-cert \
+	curl \
+	gosu \
+	&& :
+
+image-cleanup
