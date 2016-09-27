@@ -1,0 +1,4 @@
+#!/bin/bash
+set -eo pipefail
+. "$IMAGE_ROOT/lib.sh"
+entrypoint_exec "$@"
