@@ -1,0 +1,45 @@
+#!/bin/bash
+set -eo pipefail
+. "$IMAGE_ROOT/lib.sh"
+
+
+header=("# Generated via \"$0 $*\" on $(date)\n")
+namespaced_contents=(
+    "try:\n"
+    "	__import__('pkg_resources').declare_namespace(__name__)\n"
+    "except ImportError:\n"
+    "	__path__ = __import__('pkgutil').extend_path(__path__, __name__)\n"
+)
+
+
+fake_py_package() {
+    local root_path="$1"; shift
+
+    local contents=("${header[@]}")
+
+    local pkg pkg_path opt
+    for pkg in "$@"; do
+        opt=""
+        case "$pkg" in
+            *:*) opt="${pkg#*:}" pkg="${pkg%:*}" ;;
+        esac
+
+        [[ "$opt" != "namespace" ]] || \
+            contents+=("${namespaced_contents[@]}")
+
+        # Replace periods with slashes
+        pkg_path="$root_path/${pkg//\./\/}"
+
+        e "Faking python package \"$pkg\" in \"$pkg_path\"' [opt=$opt]."
+
+        mkdir -pv "$pkg_path"
+
+        local fn="$pkg_path/__init__.py"
+        [[ -e "$fn" ]] || \
+            echo -- "${contents[@]}" > "$fn"
+    done
+}
+
+
+fake_py_package "$@"
+
