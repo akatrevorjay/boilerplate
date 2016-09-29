@@ -99,14 +99,20 @@ function entrypoint_exec {
 ## meant to be able to tell what context you're in
 ##
 
+function ensure_alphanum {
+    echo "${@//[^[:alpha:][:digit:]]/_}"
+}
+
 function flag {
     local -u name="__${1:-$SELF}"
+    name=$(ensure_alphanum "$name")
     local value="${2:-true}"
     read -r "$name" <<< "$value"
 }
 
 function get_flag {
     local -u name="__$1"
+    name=$(ensure_alphanum "$name")
     local default="$2"
     echo "${!entrypoint_var:-$default}"
 }
@@ -127,10 +133,11 @@ function namespace {
     case "$cmd" in
         get|getset)
             local name="$1" default="$2" opts="$3"
+            name=$(ensure_alphanum "$name")
             local var="${ENTRYPOINT_NAMESPACE}_$name" value=
 
-            for opt in "$opts"; do
-                case "$opts" in
+            for opt in $opts; do
+                case "$opt" in
                     global)
                         default="${!name:-$default}"
                         ;;&

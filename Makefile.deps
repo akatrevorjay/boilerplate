@@ -1,0 +1,39 @@
+BIN ?= image/bin
+TARGET_ARCH ?= amd64
+
+DUMB_INIT_VERSION ?= 1.1.3
+GOSU_VERSION ?= 1.10
+
+CURL_${BIN}/gosu ?= https://github.com/tianon/gosu/releases/download/${GOSU_VERSION}/gosu-${TARGET_ARCH}
+CURL_${BIN}/dumb-init ?= https://github.com/Yelp/dumb-init/releases/download/v${DUMB_INIT_VERSION}/dumb-init_${DUMB_INIT_VERSION}_${TARGET_ARCH}
+
+CURL_DEPS = ${BIN}/gosu ${BIN}/dumb-init
+DEPS += ${CURL_DEPS}
+
+REPO_${BIN}/boilr ?= github.com/tmrts/$(notdir $@)
+
+GOLANG_DEPS = ${BIN}/boilr
+DEPS += ${GOLANG_DEPS}
+
+
+##
+## golang
+##
+
+GOLANG_IMAGE = golang:1.7
+GOLANG_IMAGE_CMD = docker run --rm -v $(abspath ${BIN}):/go/bin ${GOLANG_IMAGE}
+GOLANG_BUILD_CMD = ${GOLANG_IMAGE_CMD} go get -u -v $(REPO_$@)
+
+${GOLANG_DEPS}:
+	${GOLANG_BUILD_CMD}
+
+
+##
+## curl
+##
+
+${CURL_DEPS}:
+	curl -sSLfo "$@.tmp" "$(CURL_$@)"
+	chmod +x "$@.tmp"
+	mv "$@.tmp" "$@"
+

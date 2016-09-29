@@ -1,0 +1,31 @@
+machine:
+  services:
+    - docker
+
+checkout:
+  post:
+    - git submodule sync
+    - git submodule update --init
+
+dependencies:
+  override:
+    - make -j8
+
+test:
+  override:
+    - make test
+  post:
+    - docker login -e "$DOCKER_EMAIL" -u "$DOCKER_USER" -p "$DOCKER_PASS"
+
+deployment:
+  hub:
+    branch: /master/
+    owner: akatrevorjay
+    commands:
+      - make push
+
+  #release:
+  #  tag: /v[0-9]+(\.[0-9]+)*/
+  #  owner: akatrevorjay
+  #  commands:
+  #    - make push

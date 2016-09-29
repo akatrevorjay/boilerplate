@@ -1,4 +1,4 @@
-FROM ubuntu:yakkety
+FROM ubuntu
 MAINTAINER Trevor Joynson "<docker@trevor.joynson.io>"
 
 # ♫  Oh dependencies, dependencies: How I loathe thee.
@@ -39,12 +39,6 @@ RUN set -exv \
       curl \
       ca-certificates \
       #ssl-cert \
-      \
-      # Needed at runtime by pyopenssl for exxo build of salt-apply-state-layer
-      # libssl1.0.0 \
-      \
-      # Niceties
-      dumb-init gosu \
  && :
 
 ADD build.d $IMAGE_ROOT/build.d

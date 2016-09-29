@@ -1,0 +1,110 @@
+# Do not:
+# o  use make's built-in rules and variables
+#    (this increases performance and avoids hard-to-debug behaviour);
+# o  print "Entering directory ...";
+MAKEFLAGS += -rR --no-print-directory --warn-undefined-variables
+
+DOCKER_USER ?= $(USER)
+DOCKER_REPO ?= $(subst docker-,,$(notdir $(abspath .)))
+REPO ?= ${DOCKER_USER}/${DOCKER_REPO}
+
+UBUNTU_TAGS := latest yakkety xenial trusty
+TAGS ?= $(UBUNTU_TAGS)
+
+BUILD_TAG_PREFIX ?= build-
+
+all: build
+
+ifneq ("$(wildcard Makefile.deps)","")
+include Makefile.deps
+endif
+
+##
+## Single
+##
+
+RUN_CMDS := bash bash-verbose bash-debug bash-trace
+.PHONY: ${RUN_CMDS}
+
+# default tag
+TAG ?= $(firstword $(TAGS))
+
+${RUN_CMDS}: TAGS = $(TAG)
+${RUN_CMDS}: CMD = bash
+${RUN_CMDS}: run
+
+export ENTRYPOINT_DEBUG ENTRYPOINT_VERBOSE ENTRYPOINT_TRACE
+bash-debug: 	ENTRYPOINT_DEBUG=1
+bash-verbose: ENTRYPOINT_VERBOSE=1
+bash-trace: 	ENTRYPOINT_TRACE=1
+
+RUN_CMD ?= docker run -it --rm -v ${PWD}:/app
+
+run: build
+	${RUN_CMD} \
+		-e ENTRYPOINT_VERBOSE=${ENTRYPOINT_VERBOSE} \
+		-e ENTRYPOINT_DEBUG=${ENTRYPOINT_DEBUG} \
+		-e ENTRYPOINT_TRACE=${ENTRYPOINT_TRACE} \
+		"${REPO}:${BUILD_TAG_PREFIX}${TAG}" \
+		${CMD}
+
+
+##
+## Lifecycle
+##
+
+.PHONY: $(TAGS)
+.PHONY: all clean deps build test tag push
+
+clean:
+	rm -rf $(addprefix Dockerfile.,$(TAGS))
+
+distclean: clean
+	rm -rf ${DEPS}
+
+deps: ${DEPS}
+
+BUILD_ARGS ?=
+BUILD_FROM_TAG ?= $@
+
+$(TAGS): Dockerfile deps
+	-echo -- $@: REPO=${REPO} TAG=${TAG} BUILD_TAG=${BUILD_TAG_PREFIX}$@ BUILD_FROM_TAG=${BUILD_FROM_TAG} >&2
+	sed -e 's/^\(FROM .*\)\(:.*\|\)$$/\1:${BUILD_FROM_TAG}/' '$<' > '$<.$@.tmp' \
+		&& mv '$<.$@.tmp' '$<.$@'
+	sleep 1; \
+		docker build \
+		${BUILD_ARGS} \
+		-f "$<.$@" \
+		-t "${REPO}:${BUILD_TAG_PREFIX}$@" \
+		.
+
+build: $(TAGS)
+	@echo "-- $@: TAGS=${TAGS}" >&2
+
+test: build
+	for TAG in $(TAGS); do \
+		BUILD_TAG="${BUILD_TAG_PREFIX}$${TAG}"; \
+		\
+		echo "-- $@: TAG=$${TAG} BUILD_TAG=$${BUILD_TAG}" >&2; \
+	done
+
+tag: build
+	for TAG in $(TAGS) $(EXTRA_TAGS); do \
+		SRC_TAG="$${TAG#*=}"; \
+		TAG="$${TAG%=*}"; \
+		BUILD_TAG="${BUILD_TAG_PREFIX}$${SRC_TAG}"; \
+		echo "-- $@: [$${SRC_TAG}=$${TAG}] BUILD_TAG=$${BUILD_TAG}" >&2; \
+		\
+		docker tag "${REPO}:$${BUILD_TAG}" "${REPO}:$${TAG}"; \
+	done
+
+push: tag
+	for TAG in $(TAGS) $(EXTRA_TAGS); do \
+		SRC_TAG="$${TAG#*=}"; \
+		TAG="$${TAG%=*}"; \
+		BUILD_TAG="${BUILD_TAG_PREFIX}$${SRC_TAG}"; \
+		echo "-- $@: [$${SRC_TAG}=$${TAG}] BUILD_TAG=$${BUILD_TAG}" >&2; \
+		\
+		docker push "${REPO}:$${TAG}"; \
+	done
+

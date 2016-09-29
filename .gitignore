@@ -1,5 +1,7 @@
 # I'm a computer
 # -----------------------------------------------
 # TODO: MOVE BUILT ARTIFACTS OUT OF HERE YOU SLOB
-/image/sbin/apply-state-layer
 /image/bin/boilr
+/image/bin/gosu
+/image/bin/dumb-init
+/Dockerfile.*
