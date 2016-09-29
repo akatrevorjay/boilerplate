@@ -27,7 +27,7 @@ ENV LANGUAGE=$LANG \
 
 ENV PATH=$APP_PATH:$IMAGE_PATH:$PATH
 
-ADD image-early $IMAGE_ROOT/
+ADD image $IMAGE_ROOT/
 
 RUN set -exv \
  && echo "Installing common packages" \
@@ -50,8 +50,6 @@ RUN set -exv \
 ADD build.d $IMAGE_ROOT/build.d
 RUN run-parts --verbose --exit-on-error "$IMAGE_ROOT/build.d" \
  && rm -rf "$IMAGE_ROOT/build.d"
-
-ADD image $IMAGE_ROOT/
 
 ENTRYPOINT ["entrypoint"]
 CMD ["bash"]
