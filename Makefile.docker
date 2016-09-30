@@ -95,7 +95,7 @@ tag: build
 		BUILD_TAG="${BUILD_TAG_PREFIX}$${SRC_TAG}"; \
 		echo "-- $@: [$${SRC_TAG}=$${TAG}] BUILD_TAG=$${BUILD_TAG}" >&2; \
 		\
-		docker tag "${REPO}:$${BUILD_TAG}" "${REPO}:$${TAG}"; \
+		docker tag -f "${REPO}:$${BUILD_TAG}" "${REPO}:$${TAG}"; \
 	done
 
 push: tag
