@@ -85,8 +85,8 @@ function is_url_port_open {
     set -- $(split_url_proto "$url")
     local proto="$1" addr="$2"
 
-    [[ -n "$proto" ]] || death "No proto found for service $name"
-    [[ -n "$addr" ]] || death "No addr found for service $name"
+    [[ -n "$proto" ]] || error "No proto found for service $name"
+    [[ -n "$addr" ]] || error "No addr found for service $name"
 
     local nc="nc -z"
     case "$proto" in
@@ -95,12 +95,13 @@ function is_url_port_open {
         udp)
             nc+=" -u" ;;&
         tcp)
-            local host="${addr%:*}" port="${url#*:}"
+            local host="${addr%%:*}" port="${url##*:}"
             [[ -n "$host" ]] || death "No host found for service $name"
             [[ -n "$port" ]] || death "No port found for service $name"
             $nc "$host" "$port" ;;
         *)
-            death "Unknown proto $proto" ;;
+            warn "Unknown proto $proto. Ignoring."
+            return ;;
     esac
 }
 
@@ -111,9 +112,6 @@ function is_url_port_open {
 function wait_for_url_port_open {
     local url="$1" timeout_secs="${2:-$TIMEOUT}"
     debug "Checking service url: $url (timeout=${timeout_secs}s)"
-
-    # make sure we have `nc`
-    type nc > /dev/null || death "failed to find 'nc'"
 
     local i=0
     while [ $i -lt $timeout_secs ]
@@ -134,6 +132,9 @@ function wait_for_url_port_open {
 #
 
 function main {
+    # make sure we have `nc`
+    type nc > /dev/null || death "failed to find 'nc'"
+
     local service='' url='' services=''
     if [[ -n "$__SERVICE_INNER" ]]; then
         services="$__SERVICE_NAMES"
@@ -166,18 +167,24 @@ function main {
             error "No URLs found for service: $service"
             continue
         fi
-        urls[$url]+="$service "
+        urls["$url"]+="$service "
     done
 
-    for urls in "${urls[@]}"; do
-        services="${urls[$url]}"
+    local -a pids
+    for url in "${!urls[@]}"; do
+        services="${urls["$url"]}"
         __SERVICE_INNER=yes __SERVICE_NAMES="$services" __SERVICE_URL="$url" "$0" &
-        pids[${i}]=$!
+        pids+=("$!")
     done
 
     for pid in "${pids[@]}"; do
+        debug "Waiting on pid $pid"
         wait "$pid"
     done
+    debug "Waiting for any remaining pids"
+    wait
+
+    debug "Done"
 }
 
 main "$@"
