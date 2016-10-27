@@ -17,7 +17,7 @@ set -eo pipefail
 
 SELF="$(basename "$0")"
 
-function _script_echo   { echo "[$(date)] $0[$$]" "${@:2}" "#$1"; }
+function _script_echo   { echo "[$(date)] $0[$$]" "${@:2}" "#$1" >&2; }
 function debug          { [[ -z "$DEBUG" ]] || _script_echo DEBUG "$@"; }
 function e              { [[ -n "$QUIET" ]] || _script_echo INFO "$@"; }
 function info           { e "$@"; }
@@ -27,56 +27,21 @@ function error          { _script_echo ERROR "$@" >&2; }
 function death          { error "$@"; exit 1; }
 function debug_call     { debug 'call:' "$@"; "$@"; }
 
-#
-# Net utils
-#
-
-function is_netaddr {
-    [[ "$1" = *:* ]]
-}
-
-function split_netaddr {
-    local host="${1%:*}" port="${1#*:}"
-    echo "$host" "$port"
-}
-
 function split_url_proto {
     echo "${1%%://*}" "${1#*://}"
 }
 
-#
-# Link variable parsing
-#
+function get_primary_service_urls {
+    [[ $# -gt 0 ]] || set -- '^[A-Z0-9]+_[0-9]+'
+    debug "Getting primary service urls for \"$1\""
 
-function get_service_urls {
-    local name="${1^^}" var=''
-    # This ugly thing looks for $name_$NUM_PORT_$PORT_$PROTO variables
-    for var in $(compgen -A variable | egrep "^${name}_PORT_[0-9]+_[A-Z]+$"); do
+    local var='' service='' ret=1
+    for var in $(compgen -A variable | egrep "^${1}_PORT\$"); do
         echo "${!var}"
+        ret=0
     done
+    return $ret
 }
-
-function get_service_primary_url {
-    local name="${1^^}"
-    local var="${name}_PORT"
-    echo "${!var}"
-}
-
-function get_all_services_urls {
-    get_service_urls "[A-Z0-9]+_[0-9]+"
-}
-
-function get_all_services_names {
-    local var='' name=''
-    for var in $(compgen -A variable | egrep '^[A-Z0-9_]+_NAME$'); do
-        name="${var%_NAME}"
-        echo "$name"
-    done
-}
-
-#
-# Checks
-#
 
 function is_url_port_open {
     local url="$1"
@@ -85,8 +50,15 @@ function is_url_port_open {
     set -- $(split_url_proto "$url")
     local proto="$1" addr="$2"
 
-    [[ -n "$proto" ]] || error "No proto found for service $name"
-    [[ -n "$addr" ]] || error "No addr found for service $name"
+    if [[ -z "$proto" ]]; then
+        warn "No proto found for url \"$url\""
+        return 127
+    fi
+
+    if [[ -z "$addr" ]]; then
+        warn "No addr found for url \"$url\""
+        return 127
+    fi
 
     local nc="nc -z"
     case "$proto" in
@@ -96,95 +68,66 @@ function is_url_port_open {
             nc+=" -u" ;;&
         tcp)
             local host="${addr%%:*}" port="${url##*:}"
-            [[ -n "$host" ]] || death "No host found for service $name"
-            [[ -n "$port" ]] || death "No port found for service $name"
+            [[ -n "$host" ]] || death "No host found for url \"$url\""
+            [[ -n "$port" ]] || death "No port found for url \"$url\""
             $nc "$host" "$port" ;;
         *)
-            warn "Unknown proto $proto. Ignoring."
-            return ;;
+            warn "Unknown proto \"$proto\" for url \"$url\""
+            return 127 ;;
     esac
 }
 
-#
-# Instance loop
-#
-
 function wait_for_url_port_open {
     local url="$1" timeout_secs="${2:-$TIMEOUT}"
-    debug "Checking service url: $url (timeout=${timeout_secs}s)"
+    debug "Checking url \"$url\" (timeout=${timeout_secs}s)"
 
     local i=0
     while [ $i -lt $timeout_secs ]
     do
         if is_url_port_open "$url"; then
+            e "Service up: \"$url\""
             return 0
         fi
         let i++ || :
         sleep 1
     done
 
-    error "Timed out waiting for service: $name"
+    error "Timeout waiting for url \"$url\""
     return 1
 }
 
-#
-# Main
-#
+function parallellize() {
+    if [[ $# -eq 0 ]]; then
+        e "No linked services found to check; assuming lone wolf."
+        return 0
+    fi
+
+    e "Waiting for services in parallel (timeout=$TIMEOUT):" "$@"
+
+    for url in "$@"; do
+        "$0" "$url" &
+    done
+
+    debug "Waiting for any remaining pids"
+    wait
+    debug "Services up:" "$@"
+}
 
 function main {
     # make sure we have `nc`
     type nc > /dev/null || death "failed to find 'nc'"
 
-    local service='' url='' services=''
-    if [[ -n "$__SERVICE_INNER" ]]; then
-        services="$__SERVICE_NAMES"
-        url="$__SERVICE_URL"
-        debug "URL: $url for $services"
-        wait_for_url_port_open "$url"
-        return 0
-    fi
-
-    if [[ -z "$*" ]]; then
-        # If none were specified, check all linked services
+    # If none were specified, check all linked services
+    if [[ $# -eq 0 ]]; then
         debug "Getting a list of all linked services"
-        set -- $(get_all_services_names)
+        set -- $(get_primary_service_urls | sort -u)
     fi
 
-    # Check again
-    if [[ -z "$*" ]]; then
-        debug "No linked services found."
-        return 0
-    fi
-
-    debug "Waiting for services: $*"
-
-    # Collect a mapping of service urls to their services
-    # (deduplicates urls, common practice to have multiple names for the same, eg compose)
-    local -A urls
-    for service in "$@"; do
-        url=$(get_service_primary_url "$service")
-        if [[ -z "$url" ]]; then
-            error "No URLs found for service: $service"
-            continue
-        fi
-        urls["$url"]+="$service "
-    done
-
-    local -a pids
-    for url in "${!urls[@]}"; do
-        services="${urls["$url"]}"
-        __SERVICE_INNER=yes __SERVICE_NAMES="$services" __SERVICE_URL="$url" "$0" &
-        pids+=("$!")
-    done
-
-    for pid in "${pids[@]}"; do
-        debug "Waiting on pid $pid"
-        wait "$pid"
-    done
-    debug "Waiting for any remaining pids"
-    wait
-
-    debug "Done"
+    # If we have one, run direct. If many, check in parallel.
+    case $# in
+        1) wait_for_url_port_open "$1" ;;
+        *) parallellize "$@" ;;
+    esac
 }
 
 main "$@"
