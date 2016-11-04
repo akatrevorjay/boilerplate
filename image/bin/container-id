@@ -1,0 +1,26 @@
+#!/bin/bash
+set -eo pipefail
+
+SELF="${0##*/}"
+
+MAX_LENGTH=0
+
+## Look for relevant cmdline args
+while getopts "hs:" OPT; do case "$OPT" in
+	h)	cat >&2 <<-EOF
+		Usage:
+		  $SELF 		Print container ID.
+		  $SELF -s		Shortened version of above.
+		  $SELF -h		This help.
+		EOF
+		exit 1 ;;
+	s)	MAX_LENGTH=12 ;;
+esac; done; shift $(($OPTIND - 1))
+
+cid=$(egrep "lxd|lxc|docker" "/proc/1/cgroup" | head -n 1 | awk -F'/' '{print $3}')
+
+if [[ $MAX_LENGTH -gt 0 ]]; then
+	cid="${cid:0:$MAX_LENGTH}"
+fi
+
+echo "$cid"
