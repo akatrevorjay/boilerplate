@@ -1,0 +1,15 @@
+#!/bin/bash
+# If there is a god, may he forgive me for this.
+set -eo pipefail
+
+the_amazing_listenator() {
+	local code="${1:-200}" body="$2"
+	: ${body:="Listenator hungry rawr"}
+
+	echo "[$0] Listenating on 0.0.0.0:$port for status requests code=\"$code\" body=\"$body\""
+	echo -e "HTTP/1.1 $1 OK\n\n$STATUS_BODY" \
+		| nc -v -l -p 80 -q 1
+}
+
+while :; do the_amazing_listenator "$@"; done
+
