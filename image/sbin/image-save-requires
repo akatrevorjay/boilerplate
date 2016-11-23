@@ -1,0 +1,52 @@
+#!/bin/bash
+set -eo pipefail
+
+: ${IMAGE_ROOT:="/image"}
+
+save_new_apt() {
+    echo "[$0] Save Apt:" "$1" "$2" "$3"
+    apt-mark showauto > "$1"
+    apt-mark showmanual > "$2"
+    dpkg --get-selections > "$3"
+}
+
+save_new_pip() {
+    echo "[$0] Save Pip:" "$1"
+    pip freeze > "$1"
+}
+
+rotate() {
+    echo "[$0] Rotating"
+
+    local fn
+    for fn in "$@"; do
+        if [[ -e "$fn" ]]; then
+            echo "[$0] Writing diff: $fn.diff"
+            diff -u "$fn" "$fn.new" > "$fn.diff"
+            wc -l "$fn.new" "$fn" "$fn.diff"
+        fi
+    done
+
+    for fn in "$@"; do
+        mv -v "$fn.new" "$fn"
+    done
+}
+
+main() {
+    mkdir -pv "${IMAGE_ROOT:?}"
+    cd "$IMAGE_ROOT"
+
+    local base="req"
+
+    local apt_auto="$base.apt.auto.lst" apt_manual="$base.apt.manual.lst" dpkg="$base.dpkg.selections.lst"
+    local pip="$base.pip.txt"
+
+    local files=("$apt_auto" "$apt_manual" "$dpkg" "$pip")
+
+    save_new_apt "$apt_auto.new" "$apt_manual.new" "$dpkg.new" &
+    save_new_pip "$pip.new" &
+    wait
+    rotate "${files[@]}"
+}
+
+main "$@"
