@@ -1,0 +1,5 @@
+#!/bin/bash
+set -eo pipefail
+
+run-parts --verbose --exit-on-error "$@"
+rm -rf "$@"
