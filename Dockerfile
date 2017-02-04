@@ -42,7 +42,7 @@ RUN set -exv \
  && :
 
 ADD build.d $IMAGE_ROOT/build.d
-RUN build-parts --verbose --exit-on-error "$IMAGE_ROOT/build.d"
+RUN build-parts "$IMAGE_ROOT/build.d"
 
 ENTRYPOINT ["entrypoint"]
 CMD ["bash"]

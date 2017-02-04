@@ -2,4 +2,8 @@
 set -eo pipefail
 
 run-parts --verbose --exit-on-error "$@"
-rm -rf "$@"
+
+for arg in "$@"; do
+	[[ -d "$arg" ]] || continue
+	rm -rf "$arg"
+done
