@@ -1,9 +1,16 @@
 #!/bin/bash
 set -eo pipefail
 
+# Don't cleanup apt runs inter-parts
+export cleanup=no
+
 run-parts --verbose --exit-on-error "$@"
 
 for arg in "$@"; do
 	[[ -d "$arg" ]] || continue
 	rm -rf "$arg"
 done
+
+# Now we can cleanup
+unset cleanup
+image-cleanup
