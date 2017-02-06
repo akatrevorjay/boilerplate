@@ -2,9 +2,11 @@
 set -eo pipefail
 . "$IMAGE_ROOT/lib.sh"
 
-entrypoint_hook "pre"
+entrypoint-hook "init"
 
 # Env hook
-[[ -z "$APP_ENV" ]] || entrypoint_hook "env_$APP_ENV"
+[[ -z "$APP_ENV" ]] || entrypoint-hook "env_$APP_ENV"
 
-entrypoint_exec "$@"
+at-runtime-exec
+
+exec entrypoint-exec "$@"

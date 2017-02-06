@@ -1,0 +1,27 @@
+#!/bin/bash
+set -eo pipefail
+. "$IMAGE_ROOT/lib.sh"
+
+main() {
+	local hook="$1"; shift
+	debug "Hook: $hook"
+
+	local entrypoint_paths=(${ENTRYPOINT_PATH//:/ })
+
+	local path= hook_path=
+	for path in "${entrypoint_paths[@]}"; do
+		hook_path="$path/hook_$hook"
+		if [[ -e "$hook_path" ]]; then
+			e "Hook %s: source %s" "$hook" "$hook_path"
+			source "$hook_path"
+		fi
+
+		exec_path="$path/$hook"
+		if [[ -x "$exec_path" ]]; then
+			e "Hook %s: exec %s" "$hook" "$exec_path"
+			"$exec_path"
+		fi
+	done
+}
+
+main "$@"

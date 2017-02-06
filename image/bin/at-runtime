@@ -1,0 +1,47 @@
+#!/bin/bash
+set -eo pipefail
+. "$IMAGE_ROOT/lib.sh"
+
+usage() {
+	echo "Usage: ${0##*/} NAME -- COMMAND ANOTHER_COMMAND..."
+}
+
+death_by_usage() {
+	usage >&2
+	exit 1
+}
+
+[ $# -ge 3 ] || death_by_usage
+
+
+name="${1:?Name is blank}"
+sep="${2:?Missing -- seperator}"
+cmds=("${@:3}")
+
+[ ${#cmds[@]} -gt 0 ] || death_by_usage
+
+runtimed="${RUNTIME_DEFERRED:?}"
+runtime_fn="$runtimed/$name"
+
+contents+=(
+	'#!/bin/bash'
+	'set -eo pipefail'
+	'. "$IMAGE_ROOT"/lib.sh'
+	''
+)
+
+contents+=("${cmds[@]}")
+
+tmp_fn=$(mktemp)
+cleanup() {
+	rm -f "$tmp_fn"
+}
+trap cleanup EXIT
+
+touch "$tmp_fn"
+for line in "${contents[@]}"; do
+	echo "$line" >> "$tmp_fn"
+done
+
+chmod +x "$tmp_fn"
+mv "$tmp_fn" "$runtime_fn"

@@ -27,7 +27,9 @@ ENV LANGUAGE=$LANG \
 
 ENV PATH=$APP_PATH:$IMAGE_PATH:$PATH
 
-ADD image $IMAGE_ROOT/
+WORKDIR $IMAGE_ROOT
+
+ADD image ./
 
 RUN set -exv \
  && echo "Installing common packages" \
@@ -41,8 +43,8 @@ RUN set -exv \
       #ssl-cert \
  && :
 
-ADD build.d $IMAGE_ROOT/build.d
-RUN build-parts "$IMAGE_ROOT/build.d"
+ADD build.d build.d
+RUN build-parts build.d
 
 ENTRYPOINT ["entrypoint"]
 CMD ["bash"]
