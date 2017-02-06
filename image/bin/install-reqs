@@ -1,0 +1,112 @@
+#!/bin/bash
+set -eo pipefail
+
+SELF="${0##*/}"
+
+function _script_echo   { printf "[$(date)] $SELF[$$] $2 #$1\n" "${@:3}" >&2; }
+function debug          { [[ -z "$DEBUG" ]] || _script_echo DEBUG "$@"; }
+function e              { [[ -n "$QUIET" ]] || _script_echo INFO "$@"; }
+function info           { e "$@"; }
+function warn           { [[ -n "$QUIET" ]] || _script_echo WARNING "$@"; }
+function warning        { warn "$@"; }
+function error          { _script_echo ERROR "$@" >&2; }
+function death          { error "$@"; exit 1; }
+function debug_call     { debug 'call:' "$@"; "$@"; }
+function nullify        { "$@" >/dev/null 2>&1; }
+function errnullify     { "$@" 2>/dev/null; }
+
+: ${EXTRA_APT_OPTS:="--no-install-recommends"}
+: ${EXTRA_PIP_OPTS:=""}
+
+clean-apt() {
+    apt-get clean
+    rm -rf /var/lib/apt/lists/*
+}
+
+has-apt-lists() {
+    test -n "$(find "/var/lib/apt/lists" \
+            -maxdepth 1 \
+            -type f \
+            -name '*Release' \
+            2>/dev/null)"
+}
+
+apt-get() {
+    if ! has-apt-lists; then
+        trap clean-apt EXIT
+        command apt-get update -q
+    fi
+
+    command apt-get "$@"
+}
+
+has-apt-pkgs() {
+    dpkg-query -W -f='${binary:Package}\t${db:Status-Abbrev}\n' "$@" | egrep -v '[^i]..$'
+}
+
+install-apt-pkgs() {
+    if nullify has-apt-pkgs "$@"; then
+        e "Already installed %d apt packages: %s" "$#" "$*"
+        return 0
+    fi
+
+    e "Installing %d apt packages: %s" "$#" "$*"
+    apt-get install -qy ${EXTRA_APT_OPTS} "${pkgs[@]}"
+}
+
+install-apt-files() {
+    [[ $# -gt 0 ]] || return 0
+    e "Apt req files: %s" "$*"
+
+    # If these are on the same line then the retval doesn't count
+    local pkgs=()
+    pkgs=($(sed -e '/^[-$#]/d; s/#.*$//g' "$@"))
+
+    [[ ${#pkgs[@]} -gt 0 ]] || return 0
+
+    install-apt-pkgs "${pkgs[@]}"
+}
+
+install-pip-files() {
+    [[ $# -gt 0 ]] || return 0
+    e "Pip req files: %s" "$*"
+
+    local args=()
+    local fn
+    for fn in "$@"; do
+        # nullglob emulation
+        [[ -e "$fn" ]] || continue
+
+        args+=(-r "$fn")
+    done
+
+    pip install ${EXTRA_PIP_OPTS} "${args[@]}"
+}
+
+main() {
+    local apt_files=()
+    local pip_files=()
+
+    for fn in "$@"; do
+        case "${fn##*.}" in
+            apt)
+                apt_files+=("$fn")
+                ;;
+            txt|pip)
+                pip_files+=("$fn")
+                ;;
+            cache)
+                e 'Ignoring cache file "%s".' "$fn"
+                ;;
+            *)
+                error 'I have no idea how to handle "%s".' "$fn"
+                exit 1
+                ;;
+        esac
+    done
+
+    install-apt-files "${apt_files[@]}"
+    install-pip-files "${pip_files[@]}"
+}
+
+main "$@"
