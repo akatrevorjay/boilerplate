@@ -1,0 +1,7 @@
+#!/bin/bash
+set -eo pipefail
+
+: ${IMAGE:="$1"}
+: ${IMAGE:?}
+
+bats "${0%/*}"/*.bats

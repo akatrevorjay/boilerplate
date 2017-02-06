@@ -84,8 +84,9 @@ build: $(TAGS)
 test: build
 	for TAG in $(TAGS); do \
 		BUILD_TAG="${BUILD_TAG_PREFIX}$${TAG}"; \
+		IMAGE="${REPO}:$${BUILD_TAG}"; \
 		\
-		echo "-- $@: TAG=$${TAG} BUILD_TAG=$${BUILD_TAG}" >&2; \
+		./tests/run-tests "$$IMAGE"; \
 	done
 
 tag: build
