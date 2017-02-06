@@ -42,7 +42,7 @@ Batteries?
         volume(s) are mounted over them.
     * Image root is `/image`. App root is `/app`, which I've found intuitively makes sense for everyone, myself
     included, while also being less to type. win/win.
-    *These should never be hard coded, but are set as env vars in the `Dockerfile` here to be configurable.*
+        *These should never be hard coded, but are set as env vars in the `Dockerfile` here to be configurable.*
 
 * `entrypoint`: A simple bash-only hookable entrypoint that makes it easy to make an image that isn't painful to use.
     * Hookable by adding hook-named executables (and/or sourceable shell scripts to modify functionality)
