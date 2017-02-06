@@ -51,7 +51,7 @@ entrypoint-exec() {
 		debug "entrypoint: %s=%s" "$1" "$entrypoint"
 
 		# Replace first element with the full path to the entrypoint, keep the rest
-		entrypoint_command=("$entrypoint" "${entrypoint_command[@:2]}")
+		entrypoint_command[0]="$entrypoint"
 
 		entrypoint-hook "entrypoint_${entrypoint##*/}" "entrypoint"
 	fi
