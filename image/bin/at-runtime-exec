@@ -7,12 +7,7 @@ runtimed="${RUNTIME_DEFERRED:?}"
 stamp_started="${runtimed}/.started"
 stamp_done="${runtimed}/.done"
 
-if [[ -e "$stamp_started" ]]; then
-	debug "Stamp %s already exists; exiting quietly."
-	exit 0
-fi
-
-e "Running any deferred at-runtime tasks from %s" "$runtimed"
+debug "Running any deferred at-runtime tasks from %s" "$runtimed"
 
 touch "$stamp_started"
 
