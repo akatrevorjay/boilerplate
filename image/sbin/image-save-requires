@@ -38,13 +38,22 @@ main() {
 
     local base="req"
 
-    local apt_auto="$base.apt.auto.lst" apt_manual="$base.apt.manual.lst" dpkg="$base.dpkg.selections.lst"
-    local pip="$base.pip.txt"
+    local files=()
 
-    local files=("$apt_auto" "$apt_manual" "$dpkg" "$pip")
+    if has-command apt-get; then
+		local apt_auto="$base.apt.auto.lst" apt_manual="$base.apt.manual.lst" dpkg="$base.dpkg.selections.lst"
+		files+=("$apt_auto" "$apt_manual" "$dpkg")
+    	save_new_apt "$apt_auto.new" "$apt_manual.new" "$dpkg.new" &
+    fi
 
-    save_new_apt "$apt_auto.new" "$apt_manual.new" "$dpkg.new" &
-    save_new_pip "$pip.new" &
+    if has-command pip; then
+		local pip="$base.pip.txt"
+		files+=("$pip")
+    	save_new_pip "$pip.new" &
+    fi
+
+	[[ ${#files[@]} -gt 0 ]] || return 0
+
     wait
     rotate "${files[@]}"
 }
