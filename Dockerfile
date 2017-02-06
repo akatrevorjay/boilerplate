@@ -43,7 +43,6 @@ RUN set -exv \
       #ssl-cert \
  && :
 
-ADD build.d build.d
 RUN build-parts build.d
 
 ENTRYPOINT ["entrypoint"]
