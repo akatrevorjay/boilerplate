@@ -8,7 +8,7 @@ DOCKER_USER ?= $(USER)
 DOCKER_REPO ?= $(subst docker-,,$(notdir $(abspath .)))
 REPO ?= ${DOCKER_USER}/${DOCKER_REPO}
 
-UBUNTU_TAGS := latest yakkety xenial trusty
+UBUNTU_TAGS := latest zesty yakkety xenial trusty
 TAGS ?= $(UBUNTU_TAGS)
 
 BUILD_TAG_PREFIX ?= build-
