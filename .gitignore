@@ -1,6 +1,7 @@
 # I'm a computer
 # -----------------------------------------------
 # TODO: MOVE BUILT ARTIFACTS OUT OF HERE YOU SLOB
+/image/bin/dockerize
 /image/bin/boilr
 /image/bin/gosu
 /image/bin/dumb-init

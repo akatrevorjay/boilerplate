@@ -11,8 +11,9 @@ CURL_DEPS = ${BIN}/gosu ${BIN}/dumb-init
 DEPS += ${CURL_DEPS}
 
 REPO_${BIN}/boilr ?= github.com/tmrts/$(notdir $@)
+REPO_${BIN}/dockerize ?= github.com/jwilder/$(notdir $@)
 
-GOLANG_DEPS = ${BIN}/boilr
+GOLANG_DEPS = ${BIN}/boilr ${BIN}/dockerize
 DEPS += ${GOLANG_DEPS}
 
 
