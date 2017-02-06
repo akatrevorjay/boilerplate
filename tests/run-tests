@@ -4,4 +4,6 @@ set -eo pipefail
 : ${IMAGE:="$1"}
 : ${IMAGE:?}
 
+export IMAGE
+
 bats "${0%/*}"/*.bats
