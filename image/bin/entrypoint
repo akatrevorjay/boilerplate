@@ -2,11 +2,74 @@
 set -eo pipefail
 . "$IMAGE_ROOT/lib.sh"
 
-entrypoint-hook "init"
+# Use dumb-init by default on exec from init, but allow
+# it to be replaced.
+: ${ENTRYPOINT_EXEC_PREFIX:="dumb-init --single-child"}
 
-# Env hook
-[[ -z "$APP_ENV" ]] || entrypoint-hook "env_$APP_ENV"
+# assertion
+: ${ENTRYPOINT_PATH:?}
 
-at-runtime-exec
+entrypoint-hook() {
+	local hook="$1"; shift
+	debug "Hook: $hook"
 
-exec entrypoint-exec "$@"
+	local entrypoint_paths=(${ENTRYPOINT_PATH//:/ })
+
+	local path= hook_path=
+	for path in "${entrypoint_paths[@]}"; do
+		hook_path="$path/hook_$hook"
+		if [[ -e "$hook_path" ]]; then
+			e "Hook %s: source %s" "$hook" "$hook_path"
+			source "$hook_path"
+		fi
+
+		exec_path="$path/$hook"
+		if [[ -x "$exec_path" ]]; then
+			e "Hook %s: exec %s" "$hook" "$exec_path"
+			"$exec_path"
+		fi
+	done
+}
+
+entrypoint-find() {
+	# Find if any entrypoints exist with this name
+	# This way we don't add ENTRYPOINT_PATH to PATH
+	local which=$(which which)  # Nab the abs path
+	PATH="$ENTRYPOINT_PATH" "$which" "$1" 2>/dev/null
+}
+
+entrypoint-exec() {
+	local entrypoint_command=("$@")
+
+	local entrypoint_prefix=()
+	if pid_is_init && [[ ${#entrypoint_command[@]} -gt 0 ]]; then
+		entrypoint_prefix+=(${ENTRYPOINT_EXEC_PREFIX})
+	fi
+
+	local entrypoint=$(entrypoint-find "$1" || :)
+	if [[ -n "$entrypoint" ]]; then
+		debug "entrypoint: %s=%s" "$1" "$entrypoint"
+
+		# Replace first element with the full path to the entrypoint, keep the rest
+		entrypoint_command=("$entrypoint" "${entrypoint_command[@:2]}")
+
+		entrypoint-hook "entrypoint_${entrypoint##*/}" "entrypoint"
+	fi
+
+	entrypoint-hook "exec_$1" "exec"
+	debug_call exec "${entrypoint_prefix[@]}" "${entrypoint_command[@]}"
+}
+
+entrypoint() {
+	entrypoint-hook "init"
+
+	# Env hook
+	[[ -z "$APP_ENV" ]] || entrypoint-hook "env_$APP_ENV"
+
+	at-runtime-exec
+
+	entrypoint-exec "$@"
+}
+
+# magic af
+"${0##*/}" "$@"

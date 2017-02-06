@@ -1,12 +1,1 @@
-#!/bin/bash
-set -eo pipefail
-. "$IMAGE_ROOT/lib.sh"
-
-main() {
-	# Find if any entrypoints exist with this name
-	# This way we don't add ENTRYPOINT_PATH to PATH
-	local which="$(which which)"  # Nab the abs path
-	PATH="$ENTRYPOINT_PATH" "$which" "$1"
-}
-
-main "$@"
+entrypoint
