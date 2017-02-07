@@ -18,15 +18,12 @@ entrypoint-hook() {
 	local path= hook_path=
 	for path in "${entrypoint_paths[@]}"; do
 		hook_path="$path/hook_$hook"
-		if [[ -e "$hook_path" ]]; then
-			e "Hook %s: source %s" "$hook" "$hook_path"
-			source "$hook_path"
-		fi
-
-		exec_path="$path/$hook"
-		if [[ -x "$exec_path" ]]; then
+		if [[ -x "$hook_path" ]]; then
 			e "Hook %s: exec %s" "$hook" "$exec_path"
 			"$exec_path"
+		elif [[ -e "$hook_path" ]]; then
+			e "Hook %s: source %s" "$hook" "$hook_path"
+			source "$hook_path"
 		fi
 	done
 }
