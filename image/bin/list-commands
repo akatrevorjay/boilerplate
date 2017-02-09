@@ -1,0 +1,50 @@
+#!/bin/bash
+set -eo pipefail
+. "$IMAGE_ROOT/lib.sh"
+
+all_vars=(ENTRYPOINT_PATH APP_PATH IMAGE_PATH)
+vars=()
+
+if [[ $# -gt 0 ]]; then
+	for arg in "$@"; do
+		for var in "${all_vars[@]}"; do
+			[[ "${var,,}" == "${arg,,}_path" ]] || continue
+			vars+=("$var")
+		done
+	done
+else
+	vars+=("${all_vars[@]}")
+fi
+
+
+output_names=()
+
+for path_var in "${vars[@]}"; do
+	path="${!path_var}"
+
+	IFS=':' read -r -a paths <<< "$path"
+
+	good_paths=()
+	for p in "${paths[@]}"; do
+		[[ -d "$p" ]] || continue
+		good_paths+=("$p")
+	done
+
+	ret=$(
+		find \
+		"${good_paths[@]}" \
+		-type f \
+		-executable
+	)
+
+	[[ -n "$ret" ]] || continue
+
+	path_name="$path_var"
+	path_name="${path_name%_PATH}"
+	path_name="${path_name,,}"
+
+	[[ ${#output_names[@]} -eq 0 ]] || echo
+	echo "Commands from ${path_name} in ${paths[@]}:"
+	echo
+	echo "$ret" | sed -e 's@^@- @'
+ done
