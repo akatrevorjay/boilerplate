@@ -1,17 +1,32 @@
 #!/bin/bash
+#
+# @url https://github.com/akatrevorjay/docker-boilerplate
+#
 set -eo pipefail
-. "$IMAGE_ROOT/lib.sh"
+source "${APP_ROOT:?}/image/lib.sh"
+
+#
+# Main
+#
 
 header=("# Generated via \"$0 $*\" on $(date)\n")
 namespaced_contents=(
-    "from pkgutil import extend_path\n"
-    "__path__ = extend_path(__path__, __name__)\n"
+    "try:\n"
+    "    from pkgutil import extend_path\n"
+    "    __path__ = extend_path(__path__, __name__)\n"
+    "except ImportError:\n"
+    "    import pkg_resources\n"
+    "    pkg_resources.declare_namespace(__name__)\n"
 )
 
 
 fake_py_package() {
     local root_path="$1"; shift
 
+    if [ $# -eq 0 ]; then
+        echo 'Usage: $0 ROOT_PATH [PACKAGE[:OPTS] ...]' >&2
+        return 1
+    fi
 
     local pkg pkg_path contents opt
     for pkg in "$@"; do
@@ -36,7 +51,6 @@ fake_py_package() {
             echo -- "${contents[@]}" > "$fn"
     done
 }
-
 
 fake_py_package "$@"
 
