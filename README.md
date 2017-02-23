@@ -68,7 +68,7 @@ Batteries?
 
 * `at-runtime`: Register commands to be executed at image runtime from your build steps in one go.
 
-* `wait-for-linked-services`: As the name suggests. https://github.com/akatrevorjan/wait-for-linked-services
+* `wait-for-linked-services`: As the name suggests. https://github.com/akatrevorjay/wait-for-linked-services
 
 * `image-cleanup`: No idea. Judging by the name it's a virus.
 
