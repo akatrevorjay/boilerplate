@@ -20,7 +20,7 @@ test:
 deployment:
   hub:
     branch: /master/
-    owner: akatrevorjay
+    owner: /akatrevorjay|disqus/
     commands:
       - make push
 
