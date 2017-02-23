@@ -3,7 +3,7 @@
 # @url https://github.com/akatrevorjay/docker-boilerplate
 #
 set -eo pipefail
-source "${APP_ROOT:?}/image/lib.sh"
+source "${IMAGE_ROOT:?}/lib.sh"
 
 #
 # Main
