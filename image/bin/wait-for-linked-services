@@ -15,9 +15,9 @@ set -eo pipefail
 # Output
 #
 
-SELF="$(basename "$0")"
+SELF="${0##*/}"
 
-function _script_echo   { echo "[$(date)] $0[$$]" "${@:2}" "#$1" >&2; }
+function _script_echo   { echo "[$(date)] $SELF[$$]" "${@:2}" "#$1" >&2; }
 function debug          { [[ -z "$DEBUG" ]] || _script_echo DEBUG "$@"; }
 function e              { [[ -n "$QUIET" ]] || _script_echo INFO "$@"; }
 function info           { e "$@"; }
@@ -26,6 +26,11 @@ function warning        { warn "$@"; }
 function error          { _script_echo ERROR "$@" >&2; }
 function death          { error "$@"; exit 1; }
 function debug_call     { debug 'call:' "$@"; "$@"; }
+function nullify        { "$@" >/dev/null 2>&1; }
+
+#
+# Meat
+#
 
 function split_url_proto {
     echo "${1%%://*}" "${1#*://}"
@@ -35,7 +40,7 @@ function get_primary_service_urls {
     [[ $# -gt 0 ]] || set -- '^[A-Z0-9]+_[0-9]+'
     debug "Getting primary service urls for \"$1\""
 
-    local var='' service='' ret=1
+    local var='' ret=1
     for var in $(compgen -A variable | egrep "^${1}_PORT\$"); do
         echo "${!var}"
         ret=0
@@ -43,7 +48,47 @@ function get_primary_service_urls {
     return $ret
 }
 
-function is_url_port_open {
+function backend_netcat {
+    local proto="$1" addr="$2"; shift 2
+
+    # make sure we have `nc`
+    type nc > /dev/null || death "failed to find 'nc'"
+
+    local nc="nc -z"
+    case "$proto" in
+        unix)
+            $nc -U "$addr" ;;
+        udp)
+            nc+=" -u" ;;&
+        udp|tcp)
+            local host="${addr%%:*}" port="${addr##*:}"
+            [[ -n "$host" ]] || death "No host found for url \"$url\""
+            [[ -n "$port" ]] || death "No port found for url \"$url\""
+            $nc "$host" "$port" ;;
+        *)
+            warn "Unknown proto \"$proto\" (addr=\"$addr\") for netcat backend."
+            return 1
+    esac
+}
+
+function backend_curl {
+    local proto="$1" addr="$2"; shift 2
+
+    # make sure we have `curl`
+    type curl > /dev/null || death "failed to find 'curl'"
+
+    local curl="curl -sSLf"
+    case "$proto" in
+        http2)
+            curl+=" --http2"
+            proto="${proto/2}"
+            ;;
+    esac
+
+    $curl "${proto}://${addr}"
+}
+
+function check_url {
     local url="$1"
     debug "Checking if $url is open"
 
@@ -60,35 +105,59 @@ function is_url_port_open {
         return 127
     fi
 
-    local nc="nc -z"
     case "$proto" in
-        unix)
-            $nc -U "$addr" ;;
-        udp)
-            nc+=" -u" ;;&
-        tcp)
-            local host="${addr%%:*}" port="${url##*:}"
-            [[ -n "$host" ]] || death "No host found for url \"$url\""
-            [[ -n "$port" ]] || death "No port found for url \"$url\""
-            $nc "$host" "$port" ;;
+        exists)
+            test -e "$addr" ;;
+        file)
+            test -f "$addr" ;;
+        socket)
+            test -S "$addr" ;;
+
+        ping)
+            # make sure we have `nc`
+            type ping > /dev/null || death "failed to find 'nc'"
+
+            ping -c 1 -o -q -t 1 "$addr" >/dev/null ;;
+
+        sleep)
+            sleep "$addr" ;;
+
+        unix|udp|tcp)
+            backend_netcat "$proto" "$addr" "$@" ;;
+
+        http2|http|https|ftp|sftp|dict|imap|pop3|smtp|socks4|socks4a|socks5|socks5h)
+            backend_curl "$proto" "$addr" "$@" ;;
+
         *)
             warn "Unknown proto \"$proto\" for url \"$url\""
             return 127 ;;
     esac
 }
 
-function wait_for_url_port_open {
+function wait_for_check_url {
     local url="$1" timeout_secs="${2:-$TIMEOUT}"
     debug "Checking url \"$url\" (timeout=${timeout_secs}s)"
+
+    set -- nullify check_url "$url"
+    local remind_every=$(( $timeout_secs / 2 ))
 
     local i=0
     while [ $i -lt $timeout_secs ]
     do
-        if is_url_port_open "$url"; then
-            e "Service up: \"$url\""
+        let i++ || :
+
+        if [[ $i -eq $timeout_secs ]]; then
+            warn "Last shot before timeout for url \"$url\"; allowing output for debug."
+            shift
+        elif [[ $i -gt 1 ]] && ! (( $i % $remind_every )); then
+            warn "Still waiting($i/$timeout_secs) on url \"$url\""
+        fi
+
+        if "$@"; then
+            e "Up: \"$url\""
             return 0
         fi
-        let i++ || :
+
         sleep 1
     done
 
@@ -104,19 +173,28 @@ function parallellize() {
 
     e "Waiting for services in parallel (timeout=$TIMEOUT):" "$@"
 
+    local pids=()
+
+    on_chld() {
+        for pid in "${pids[@]}"; do
+            kill -0 "$pid" 2>/dev/null || wait "$pid"
+        done
+    }
+
+    set -o monitor
+    trap on_chld CHLD
+
     for url in "$@"; do
         "$0" "$url" &
+        pids+=($!)
     done
 
-    debug "Waiting for any remaining pids"
+    debug "Waiting for pids:" "${pids[@]}"
     wait
     debug "Services up:" "$@"
 }
 
 function main {
-    # make sure we have `nc`
-    type nc > /dev/null || death "failed to find 'nc'"
-
     # If none were specified, check all linked services
     if [[ $# -eq 0 ]]; then
         debug "Getting a list of all linked services"
@@ -125,7 +203,7 @@ function main {
 
     # If we have one, run direct. If many, check in parallel.
     case $# in
-        1) wait_for_url_port_open "$1" ;;
+        1) wait_for_check_url "$1" ;;
         *) parallellize "$@" ;;
     esac
 }
