@@ -24,7 +24,6 @@ Comes with unlimited lifetime money back guarantee.
         * `gosu`: for swapping privileges if you must. Helps local dev and delevation of privileges at runtime.
         * `dockerize`: for templating files at runtime and providing convenient facilities such as an a log tailer
           for those nasy apps that don't provide decent stdout/stderr (Hi `nginx`).
-        * `bolr`: for templating files, projects, or groups of files at runtime.
 
 * A repository full of niceities you can also just copy into your own where using this base image is not applicable. At
   least your Dockerfiles will be prettier and less error prone.
