@@ -19,8 +19,8 @@ entrypoint-hook() {
 	for path in "${entrypoint_paths[@]}"; do
 		hook_path="$path/hook_$hook"
 		if [[ -x "$hook_path" ]]; then
-			e "Hook %s: exec %s" "$hook" "$exec_path"
-			"$exec_path"
+			e "Hook %s: exec %s" "$hook" "$hook_path"
+			"$hook_path"
 		elif [[ -e "$hook_path" ]]; then
 			e "Hook %s: source %s" "$hook" "$hook_path"
 			source "$hook_path"
