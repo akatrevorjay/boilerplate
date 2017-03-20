@@ -1,0 +1,41 @@
+version: 2
+
+jobs:
+  build:
+    docker:
+      - image: trevorj/circleci-builder:latest
+    working_directory: /app
+
+    steps:
+      - checkout
+      - run:
+          name: checkout-submodules
+          command: |
+            set -eo pipefail
+            set -xv
+            git submodule sync
+            git submodule update --init
+
+      - setup_docker_engine
+
+      - run:
+          name: build
+          command: make -j8
+
+      - run:
+          name: test
+          command: make test
+
+      - deploy:
+          name: docker-login
+          command: docker login -e "$DOCKER_EMAIL" -u "$DOCKER_USER" -p "$DOCKER_PASS"
+
+      - deploy:
+          name: push
+          command: |
+            set -eo pipefail
+            set -xv
+            case "$CIRCLE_BRANCH" in
+                master)
+                  make push ;;
+            esac
