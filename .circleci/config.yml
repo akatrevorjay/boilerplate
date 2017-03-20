@@ -23,7 +23,7 @@ jobs:
           command: |
             set -eo pipefail
             set -xv
-            export ${!CIRCLE*}
+            export ${!*}
             make -j8
 
       - run:
@@ -31,7 +31,7 @@ jobs:
           command: |
             set -eo pipefail
             set -xv
-            export ${!CIRCLE*}
+            export ${!*}
             make test
 
       - deploy:
