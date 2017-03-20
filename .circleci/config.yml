@@ -43,7 +43,7 @@ jobs:
           command: |
             set -eo pipefail
             set -xv
-            export ${!CIRCLE*}
+            export ${!*}
             case "$CIRCLE_BRANCH" in
                 master)
                   make -j8 push ;;
