@@ -46,5 +46,5 @@ jobs:
             export ${!CIRCLE*}
             case "$CIRCLE_BRANCH" in
                 master)
-                  make push ;;
+                  make -j8 push ;;
             esac
