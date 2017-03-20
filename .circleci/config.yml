@@ -20,11 +20,19 @@ jobs:
 
       - run:
           name: build
-          command: make -j8
+          command: |
+            set -eo pipefail
+            set -xv
+            export ${!CIRCLE*}
+            make -j8
 
       - run:
           name: test
-          command: make test
+          command: |
+            set -eo pipefail
+            set -xv
+            export ${!CIRCLE*}
+            make test
 
       - deploy:
           name: docker-login
@@ -35,6 +43,7 @@ jobs:
           command: |
             set -eo pipefail
             set -xv
+            export ${!CIRCLE*}
             case "$CIRCLE_BRANCH" in
                 master)
                   make push ;;
