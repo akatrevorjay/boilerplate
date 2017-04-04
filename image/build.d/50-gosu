@@ -1,0 +1,2 @@
+#!/bin/bash
+chmod u+s "$IMAGE_ROOT/sbin/gosu"
