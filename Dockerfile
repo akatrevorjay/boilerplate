@@ -41,6 +41,7 @@ RUN set -exv \
       curl \
       ca-certificates \
       #ssl-cert \
+      busybox \
  && :
 
 RUN build-parts build.d
