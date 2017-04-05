@@ -1,0 +1,3 @@
+#!/bin/bash -e
+mkdir -pv "$APP_ROOT"
+chown "$APP_USER:$APP_USER" "$APP_ROOT"
