@@ -12,7 +12,6 @@ jobs:
           name: checkout-submodules
           command: |
             set -eo pipefail
-            set -xv
             git submodule sync
             git submodule update --init
 
@@ -22,29 +21,24 @@ jobs:
           name: build
           command: |
             set -eo pipefail
-            set -xv
-            export ${!*}
-            make -j8
+            exec make -j8
 
       - run:
           name: test
           command: |
             set -eo pipefail
-            set -xv
-            export ${!*}
-            make test
+            exec make test
 
       - deploy:
           name: docker-login
-          command: docker login -e "$DOCKER_EMAIL" -u "$DOCKER_USER" -p "$DOCKER_PASS"
+          command: |
+            exec docker login -e "$DOCKER_EMAIL" -u "$DOCKER_USER" -p "$DOCKER_PASS"
 
       - deploy:
           name: push
           command: |
             set -eo pipefail
-            set -xv
-            export ${!*}
             case "$CIRCLE_BRANCH" in
                 master)
-                  make -j8 push ;;
+                  exec make -j8 push ;;
             esac
