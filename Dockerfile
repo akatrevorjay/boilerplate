@@ -23,9 +23,11 @@ ENV LANGUAGE=$LANG \
     \
     APP_PATH=$APP_ROOT/image/sbin:$APP_ROOT/image/bin \
     \
-    ENTRYPOINT_PATH=$APP_ROOT/image/entrypoint.d:$APP_ROOT/entrypoint.d:$IMAGE_ROOT/entrypoint.d
+    ENTRYPOINT_PATH=$APP_ROOT/image/entrypoint.d:$APP_ROOT/entrypoint.d:$IMAGE_ROOT/entrypoint.d \
+    \
+    BUSYBOX_BIN=$IMAGE_ROOT/busybox-bin
 
-ENV PATH=$APP_PATH:$IMAGE_PATH:$PATH
+ENV PATH=$APP_PATH:$IMAGE_PATH:$PATH:$BUSYBOX_BIN
 
 WORKDIR $IMAGE_ROOT
 
@@ -42,6 +44,11 @@ RUN set -exv \
       ca-certificates \
       #ssl-cert \
       busybox \
+ \
+ && echo "Setting up busybox links" \
+ && mkdir -pv "$BUSYBOX_BIN" \
+ && busybox --install -s "$BUSYBOX_BIN" \
+ \
  && :
 
 RUN build-parts build.d
