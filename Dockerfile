@@ -8,7 +8,7 @@ MAINTAINER Trevor Joynson "<docker@trevor.joynson.io>"
 
 ENV DEBIAN_FRONTEND=noninteractive \
     DEBCONF_NONINTERACTIVE_SEEN=true \
-    LANG=en_US.UTF-8 \
+    LANG=C.UTF-8 \
     TZ=Etc/UTC \
     \
     IMAGE_ROOT=/image \
