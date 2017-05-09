@@ -4,4 +4,7 @@ set -eo pipefail
 
 e "Setting up busybox links in '%s'" "${BUSYBOX_PATH:?}"
 mkdir -pv "$BUSYBOX_PATH"
-busybox --install -s "$BUSYBOX_PATH"
+
+# Requires abs path
+busybox=$(which busybox)
+"${busybox:?}" --install -s "$BUSYBOX_PATH"
