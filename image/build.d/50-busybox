@@ -1,0 +1,7 @@
+#!/bin/bash
+set -eo pipefail
+. "$IMAGE_ROOT/lib.sh"
+
+e "Setting up busybox links in '%s'" "${BUSYBOX_PATH:?}"
+mkdir -pv "$BUSYBOX_PATH"
+busybox --install -s "$BUSYBOX_PATH"

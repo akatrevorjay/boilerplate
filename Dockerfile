@@ -20,14 +20,13 @@ ENV DEBIAN_FRONTEND=noninteractive \
 ENV LANGUAGE=$LANG \
     \
     IMAGE_PATH=$IMAGE_ROOT/sbin:$IMAGE_ROOT/bin \
+    BUSYBOX_PATH=$IMAGE_ROOT/busybox-bin \
     \
     APP_PATH=$APP_ROOT/image/sbin:$APP_ROOT/image/bin \
     \
-    ENTRYPOINT_PATH=$APP_ROOT/image/entrypoint.d:$APP_ROOT/entrypoint.d:$IMAGE_ROOT/entrypoint.d \
-    \
-    BUSYBOX_BIN=$IMAGE_ROOT/busybox-bin
+    ENTRYPOINT_PATH=$APP_ROOT/image/entrypoint.d:$APP_ROOT/entrypoint.d:$IMAGE_ROOT/entrypoint.d
 
-ENV PATH=$APP_PATH:$IMAGE_PATH:$PATH:$BUSYBOX_BIN
+ENV PATH=$APP_PATH:$IMAGE_PATH:$PATH:$BUSYBOX_PATH
 
 WORKDIR $IMAGE_ROOT
 
@@ -44,11 +43,6 @@ RUN set -exv \
       ca-certificates \
       #ssl-cert \
       busybox \
- \
- && echo "Setting up busybox links" \
- && mkdir -pv "$BUSYBOX_BIN" \
- && busybox --install -s "$BUSYBOX_BIN" \
- \
  && :
 
 RUN build-parts build.d
