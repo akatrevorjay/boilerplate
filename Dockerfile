@@ -41,6 +41,8 @@ RUN set -exv \
       # Common
       curl \
       ca-certificates \
+      locales \
+      tzdata \
       #ssl-cert \
       busybox \
  && :
