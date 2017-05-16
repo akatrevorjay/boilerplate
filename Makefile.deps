@@ -22,11 +22,12 @@ DEPS += ${GOLANG_DEPS}
 ##
 
 GOLANG_IMAGE = golang:1.8
-GOLANG_IMAGE_CMD = docker run --userns host -u $(id -u):$(id -g) --rm -v $(abspath ${BIN}):/go/bin ${GOLANG_IMAGE}
+GOLANG_IMAGE_CMD = docker run --userns host --rm -v $(abspath ${BIN}):/go/bin ${GOLANG_IMAGE}
 GOLANG_BUILD_CMD = ${GOLANG_IMAGE_CMD} go get -u -v $(REPO_$@)
 
 ${GOLANG_DEPS}:
 	${GOLANG_BUILD_CMD}
+	test -e "$@"
 
 
 ##
