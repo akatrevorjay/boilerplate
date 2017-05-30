@@ -1,0 +1,6 @@
+#!/bin/bash
+set -eo pipefail
+. "${IMAGE_ROOT:?}/lib.sh"
+
+runtimed="${RUNTIME_DEFERRED:?}"
+mkdir -p "$runtimed"
