@@ -63,7 +63,7 @@ entrypoint() {
 	# Env hook
 	[[ -z "$APP_ENV" ]] || entrypoint-hook "env_$APP_ENV"
 
-	at-runtime-exec
+	at-runtime-exec || error "Error running at-runtime-exec rv=%s" "$?"
 
 	entrypoint-exec "$@"
 }
