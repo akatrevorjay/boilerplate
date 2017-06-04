@@ -5,15 +5,8 @@ set -eo pipefail
 runtimed="${RUNTIME_DEFERRED:?}"
 mkdir -p "$runtimed"
 
-stamp_started="${runtimed}/.started"
-stamp_done="${runtimed}/.done"
-
-debug "Running any deferred at-runtime tasks from %s" "$runtimed"
-
-touch "$stamp_started"
+e "Running any deferred at-runtime tasks from %s" "$runtimed"
 
 run-parts --verbose --exit-on-error "${runtimed}"
 
-touch "$stamp_done"
-
-debug "Done running deferred at runtime tasks from %s" "$runtimed"
+e "Done running deferred at runtime tasks from %s" "$runtimed"
