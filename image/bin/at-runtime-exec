@@ -3,10 +3,10 @@ set -eo pipefail
 . "$IMAGE_ROOT/lib.sh"
 
 runtimed="${RUNTIME_DEFERRED:?}"
-mkdir -p "$runtimed"
+[[ -d "$runtimed" ]] || exit 0
 
-e "Running any deferred at-runtime tasks from %s" "$runtimed"
+debug "Running any deferred at-runtime tasks from %s" "$runtimed"
 
-run-parts --verbose --exit-on-error "${runtimed}"
+run-parts --verbose --exit-on-error "${runtimed}" >&2
 
-e "Done running deferred at runtime tasks from %s" "$runtimed"
+debug "Done running deferred at runtime tasks from %s" "$runtimed"
