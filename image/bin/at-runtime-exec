@@ -8,6 +8,11 @@ mkdir -p "$runtimed"
 stamp_started="${runtimed}/.started"
 stamp_done="${runtimed}/.done"
 
+if [[ $UID -ne 0 ]]; then
+	warn "Not running as root, so not running at-runtime tasks from %s" "$runtimed"
+	exit 0
+fi
+
 debug "Running any deferred at-runtime tasks from %s" "$runtimed"
 
 touch "$stamp_started"
