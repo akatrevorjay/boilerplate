@@ -11,7 +11,7 @@ REPO ?= ${DOCKER_USER}/${DOCKER_REPO}
 # latest == LTS
 # rolling == Latest release
 # devel == Latest development release
-UBUNTU_TAGS := latest rolling devel zesty yakkety xenial trusty
+UBUNTU_TAGS := latest rolling devel artful zesty yakkety xenial trusty
 TAGS ?= $(UBUNTU_TAGS)
 
 BUILD_TAG_PREFIX ?= build-
