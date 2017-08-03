@@ -12,8 +12,9 @@ CURL_DEPS = ${BIN}/gosu ${BIN}/dumb-init
 DEPS += ${CURL_DEPS}
 
 REPO_${BIN}/dockerize ?= github.com/jwilder/$(notdir $@)
+REPO_${BIN}/prefixout ?= github.com/akatrevorjay/$(notdir $@)
 
-GOLANG_DEPS = ${BIN}/dockerize
+GOLANG_DEPS = ${BIN}/dockerize ${BIN}/prefixout
 DEPS += ${GOLANG_DEPS}
 
 
