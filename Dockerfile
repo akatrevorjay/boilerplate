@@ -1,11 +1,6 @@
 FROM ubuntu
 MAINTAINER Trevor Joynson "<docker@trevor.joynson.io>"
 
-# ♫  Oh dependencies, dependencies: How I loathe thee.
-# ♫  There's many more, where that came from,
-# ♫  It never ends; let's just compile them in,
-# ♫  Oh magic blobs, oh magic blobs: Statically binary.
-
 ENV DEBIAN_FRONTEND=noninteractive \
     DEBCONF_NONINTERACTIVE_SEEN=true \
     LANG=C.UTF-8 \
@@ -30,8 +25,6 @@ ENV PATH=$APP_PATH:$IMAGE_PATH:$PATH:$BUSYBOX_PATH
 
 WORKDIR $IMAGE_ROOT
 
-ADD image ./
-
 RUN set -exv \
  && echo "Installing common packages" \
  && lazy-apt --no-install-recommends \
@@ -46,6 +39,8 @@ RUN set -exv \
       #ssl-cert \
       busybox \
  && :
+
+ADD image ./
 
 RUN build-parts build.d
 
