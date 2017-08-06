@@ -13,7 +13,7 @@ function info           { e "$@"; }
 function warn           { [[ -n "$QUIET" ]] || _script_echo WARNING "$@"; }
 function warning        { warn "$@"; }
 function error          { _script_echo ERROR "$@" >&2; }
-function death          { error "$@"; exit 1; }
+function death          { error "$@"; exit ${retval:-1}; }
 function debug_call     { debug 'call: %s' "$*"; "$@"; }
 function nullify        { "$@" >/dev/null 2>&1; }
 function errnullify     { "$@" 2>/dev/null; }
