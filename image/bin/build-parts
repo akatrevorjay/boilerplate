@@ -11,7 +11,7 @@ parts=($(IFS=$'\n' run-parts --test "$@"))
 for part in "${parts[@]}"; do
 	e "[%s] exec" "$part"
 
-	if ! prefixout -dtc -- "$part"; then
+	if ! prefixout -dc -- "$part"; then
     	rv=$?
 		error '[%s] Failed with retcode=%d.' "$part" "$rv"
 		exit $rv
