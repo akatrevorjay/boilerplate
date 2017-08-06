@@ -1,10 +1,24 @@
 #!/bin/bash
 set -eo pipefail
+. "$IMAGE_ROOT/lib.sh"
+
+debug "parts: %s" "$*"
 
 # Don't cleanup apt runs inter-parts
 export cleanup=no
 
-run-parts --verbose --exit-on-error "$@"
+parts=($(IFS=$'\n' run-parts --test "$@"))
+for part in "${parts[@]}"; do
+	e "[%s] exec" "$part"
+
+	if ! prefixout -dtc -- "$part"; then
+    	rv=$?
+		error '[%s] Failed with retcode=%d.' "$part" "$rv"
+		exit $rv
+	fi
+
+	debug "[%s] done" "$part"
+done
 
 for arg in "$@"; do
 	[[ -d "$arg" ]] || continue
