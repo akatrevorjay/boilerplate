@@ -27,7 +27,8 @@ WORKDIR $IMAGE_ROOT
 
 RUN set -exv \
  && echo "Installing common packages" \
- && lazy-apt --no-install-recommends \
+ && apt-get update -q \
+ && apt-get install -qy --no-install-recommends \
       # Deps: wait-for-linked-services
       netcat \
       \
@@ -38,7 +39,8 @@ RUN set -exv \
       tzdata \
       #ssl-cert \
       busybox \
- && :
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /root/.cache /home/*/.cache
 
 ADD image ./
 
