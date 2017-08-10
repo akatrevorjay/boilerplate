@@ -13,8 +13,9 @@ DEPS += ${CURL_DEPS}
 
 REPO_${BIN}/dockerize ?= github.com/jwilder/$(notdir $@)
 REPO_${BIN}/prefixout ?= github.com/akatrevorjay/$(notdir $@)
+REPO_${BIN}/envsubst ?= github.com/a8m/$(notdir $@)/cmd/$(notdir $@)
 
-GOLANG_DEPS = ${BIN}/dockerize ${BIN}/prefixout
+GOLANG_DEPS = ${BIN}/dockerize ${BIN}/prefixout ${BIN}/envsubst
 DEPS += ${GOLANG_DEPS}
 
 
