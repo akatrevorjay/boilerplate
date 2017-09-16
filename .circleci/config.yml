@@ -16,7 +16,7 @@ jobs:
             git submodule update --init
 
       - setup_remote_docker:
-          version: 17.07.0-ce-git
+          version: 17.07.0-ce
 
       - run:
           name: build
