@@ -1,4 +1,7 @@
-FROM ubuntu
+ARG BOILERPLATE_PARENT_IMAGE="ubuntu"
+ARG BOILERPLATE_PARENT_TAG="latest"
+FROM $BOILERPLATE_PARENT_IMAGE:$BOILERPLATE_PARENT_TAG
+
 MAINTAINER Trevor Joynson "<docker@trevor.joynson.io>"
 
 ENV DEBIAN_FRONTEND=noninteractive \
@@ -24,6 +27,8 @@ ENV LANGUAGE=$LANG \
 ENV PATH=$APP_PATH:$IMAGE_PATH:$PATH:$BUSYBOX_PATH
 
 WORKDIR $IMAGE_ROOT
+
+ARG BOILERPLATE_ABI="latest"
 
 RUN set -exv \
  && echo "Installing common packages" \

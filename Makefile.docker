@@ -37,9 +37,9 @@ ${RUN_CMDS}: CMD = bash
 ${RUN_CMDS}: run
 
 export ENTRYPOINT_DEBUG ENTRYPOINT_VERBOSE ENTRYPOINT_TRACE
-bash-debug: 	ENTRYPOINT_DEBUG=1
-bash-verbose: ENTRYPOINT_VERBOSE=1
-bash-trace: 	ENTRYPOINT_TRACE=1
+bash-debug:		ENTRYPOINT_DEBUG=1
+bash-verbose:	ENTRYPOINT_VERBOSE=1
+bash-trace:		ENTRYPOINT_TRACE=1
 
 RUN_CMD ?= docker run -it --rm -v ${PWD}:/app
 
@@ -68,18 +68,14 @@ distclean: clean
 deps: ${DEPS}
 
 BUILD_ARGS ?=
-BUILD_FROM_TAG ?= $@
 
 $(TAGS): Dockerfile deps
-	-echo -- $@: REPO=${REPO} TAG=${TAG} BUILD_TAG=${BUILD_TAG_PREFIX}$@ BUILD_FROM_TAG=${BUILD_FROM_TAG} >&2
-	sed -e 's/^\(FROM .*\)\(:.*\|\)$$/\1:${BUILD_FROM_TAG}/' '$<' > '$<.$@.tmp' \
-		&& mv '$<.$@.tmp' '$<.$@'
-	sleep 1; \
-		docker build \
-		${BUILD_ARGS} \
-		-f "$<.$@" \
-		-t "${REPO}:${BUILD_TAG_PREFIX}$@" \
-		.
+	-echo -- $@: REPO=${REPO} TAG=${TAG} BUILD_TAG=${BUILD_TAG_PREFIX}$@ >&2
+	./image/bin/prefixout -dtc --prefix "[$@] " -- \
+	  docker build \
+	  ${BUILD_ARGS} \
+	  -t "${REPO}:${BUILD_TAG_PREFIX}$@" \
+	  .
 
 build: $(TAGS)
 	@echo "-- $@: TAGS=${TAGS}" >&2
