@@ -18,6 +18,29 @@ BUILD_TAG_PREFIX ?= build-
 
 all: build
 
+##
+## Host build deps
+##
+
+HOST_BIN ?= host/bin
+
+REPO_${HOST_BIN}/prefixout ?= github.com/akatrevorjay/$(notdir $@)
+HOST_GOLANG_DEPS += ${HOST_BIN}/prefixout
+
+HOST_DEPS += ${HOST_GOLANG_DEPS}
+
+HOST_GOLANG_IMAGE = golang:1.8
+HOST_GOLANG_IMAGE_CMD = docker run --userns host --rm -v $(abspath ${HOST_BIN}):/go/bin ${HOST_GOLANG_IMAGE}
+HOST_GOLANG_BUILD_CMD = ${HOST_GOLANG_IMAGE_CMD} go get -u -v $(REPO_$@)
+
+${HOST_GOLANG_DEPS}:
+	${HOST_GOLANG_BUILD_CMD}
+	test -e "$@"
+
+##
+## If we have project-level deps, we should likely build them I suppose.
+##
+
 ifneq ("$(wildcard Makefile.deps)","")
 include Makefile.deps
 endif
@@ -63,15 +86,15 @@ clean:
 	rm -rf $(addprefix Dockerfile.,$(TAGS))
 
 distclean: clean
-	rm -rf ${DEPS}
+	rm -rf ${HOST_DEPS} ${DEPS}
 
-deps: ${DEPS}
+deps: ${HOST_DEPS} ${DEPS}
 
 BUILD_ARGS ?=
 
 $(TAGS): Dockerfile deps
 	-echo -- $@: REPO=${REPO} TAG=${TAG} BUILD_TAG=${BUILD_TAG_PREFIX}$@ >&2
-	./image/bin/prefixout -dtc --prefix "[$@] " -- \
+	${HOST_BIN}/prefixout -dtc --prefix "[$@] " -- \
 	  docker build \
 	  ${BUILD_ARGS} \
 	  -t "${REPO}:${BUILD_TAG_PREFIX}$@" \
