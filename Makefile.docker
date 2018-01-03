@@ -34,7 +34,7 @@ HOST_GOLANG_BUILD_CMD ?= \
 	docker create -v /go/bin --name host-golang-build-out-$(notdir $@) busybox:latest /bin/true \
 	&& ( \
 	  docker run --rm --volumes-from host-golang-build-out-$(notdir $@) ${HOST_GOLANG_IMAGE} go get -u -v $(REPO_$@) \
-	  && docker cp host-golang-build-out-$(notdir $@):/go/bin/$(notdir $@) $(abspath ${BIN}) \
+	  && docker cp host-golang-build-out-$(notdir $@):/go/bin/$(notdir $@) $(abspath ${HOST_BIN}) \
 	); \
 	docker rm host-golang-build-out-$(notdir $@)
 
