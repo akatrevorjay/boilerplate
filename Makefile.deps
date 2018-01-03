@@ -18,14 +18,18 @@ REPO_${BIN}/envsubst ?= github.com/a8m/$(notdir $@)/cmd/$(notdir $@)
 GOLANG_DEPS = ${BIN}/dockerize ${BIN}/prefixout ${BIN}/envsubst
 DEPS += ${GOLANG_DEPS}
 
-
 ##
 ## golang
 ##
 
 GOLANG_IMAGE = golang:1.8
-GOLANG_IMAGE_CMD = docker run --userns host --rm -v $(abspath ${BIN}):/go/bin ${GOLANG_IMAGE}
-GOLANG_BUILD_CMD = ${GOLANG_IMAGE_CMD} go get -u -v $(REPO_$@)
+GOLANG_BUILD_CMD ?= \
+	docker create -v /go/bin --name golang-build-out-$(notdir $@) busybox:latest /bin/true \
+	&& ( \
+	  docker run --rm --volumes-from golang-build-out-$(notdir $@) ${GOLANG_IMAGE} go get -u -v $(REPO_$@) \
+	  && docker cp golang-build-out-$(notdir $@):/go/bin/$(notdir $@) $(abspath ${BIN}) \
+	); \
+	docker rm golang-build-out-$(notdir $@)
 
 ${GOLANG_DEPS}:
 	${GOLANG_BUILD_CMD}
