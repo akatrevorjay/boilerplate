@@ -2,7 +2,6 @@ version: 2
 
 jobs:
   build:
-    context: org-global
     docker:
       - image: trevorj/circleci-builder:latest
     working_directory: /app
@@ -20,23 +19,27 @@ jobs:
           version: 17.07.0-ce
 
       - run:
+          context: org-global
           name: build
           command: |
             set -eo pipefail
             exec make -j8
 
       - run:
+          context: org-global
           name: test
           command: |
             set -eo pipefail
             exec make test
 
       - deploy:
+          context: org-global
           name: docker-login
           command: |
             exec docker login -u "$DOCKER_USER" -p "$DOCKER_PASS"
 
       - deploy:
+          context: org-global
           name: push
           command: |
             set -eo pipefail
