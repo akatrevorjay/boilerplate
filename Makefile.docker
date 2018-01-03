@@ -30,8 +30,13 @@ HOST_GOLANG_DEPS += ${HOST_BIN}/prefixout
 HOST_DEPS += ${HOST_GOLANG_DEPS}
 
 HOST_GOLANG_IMAGE = golang:1.8
-HOST_GOLANG_IMAGE_CMD = docker run --userns host --rm -v $(abspath ${HOST_BIN}):/go/bin ${HOST_GOLANG_IMAGE}
-HOST_GOLANG_BUILD_CMD = ${HOST_GOLANG_IMAGE_CMD} go get -u -v $(REPO_$@)
+HOST_GOLANG_BUILD_CMD ?= \
+	docker create -v /go/bin --name golang-build-out-$(notdir $@) busybox:latest /bin/true \
+	&& ( \
+	  docker run --rm --volumes-from golang-build-out-$(notdir $@) ${HOST_GOLANG_IMAGE} go get -u -v $(REPO_$@) \
+	  && docker cp golang-build-out-$(notdir $@):/go/bin/$(notdir $@) $(abspath ${BIN}) \
+	); \
+	docker rm golang-build-out-$(notdir $@)
 
 ${HOST_GOLANG_DEPS}:
 	${HOST_GOLANG_BUILD_CMD}
@@ -92,14 +97,9 @@ deps: ${HOST_DEPS} ${DEPS}
 
 BUILD_ARGS ?=
 
-# Use prefixout if we have it.
-ifneq (, $(shell which prefixout))
-PREFIXOUT ?= prefixout -dtc --prefix "[$@] " --
-endif
-
 $(TAGS): Dockerfile deps
 	-echo -- $@: REPO=${REPO} TAG=${TAG} BUILD_TAG=${BUILD_TAG_PREFIX}$@ >&2
-	${HOST_BIN}/prefixout -dtc --prefix "[$@] " -- \
+	"${HOST_BIN}/prefixout" -dtc --prefix "[$@] " -- \
 	  docker build \
 	  ${BUILD_ARGS} \
 	  -t "${REPO}:${BUILD_TAG_PREFIX}$@" \

@@ -18,7 +18,6 @@ REPO_${BIN}/envsubst ?= github.com/a8m/$(notdir $@)/cmd/$(notdir $@)
 GOLANG_DEPS = ${BIN}/dockerize ${BIN}/prefixout ${BIN}/envsubst
 DEPS += ${GOLANG_DEPS}
 
-
 ##
 ## golang
 ##
