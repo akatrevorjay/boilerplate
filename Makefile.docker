@@ -69,9 +69,14 @@ deps: ${DEPS}
 
 BUILD_ARGS ?=
 
+# Use prefixout if we have it.
+ifneq (, $(shell which prefixout))
+PREFIXOUT ?= prefixout -dtc --prefix "[$@] " --
+endif
+
 $(TAGS): Dockerfile deps
 	-echo -- $@: REPO=${REPO} TAG=${TAG} BUILD_TAG=${BUILD_TAG_PREFIX}$@ >&2
-	./image/bin/prefixout -dtc --prefix "[$@] " -- \
+	${PREFIXOUT} \
 	  docker build \
 	  ${BUILD_ARGS} \
 	  -t "${REPO}:${BUILD_TAG_PREFIX}$@" \
