@@ -92,6 +92,11 @@ deps: ${HOST_DEPS} ${DEPS}
 
 BUILD_ARGS ?=
 
+# Use prefixout if we have it.
+ifneq (, $(shell which prefixout))
+PREFIXOUT ?= prefixout -dtc --prefix "[$@] " --
+endif
+
 $(TAGS): Dockerfile deps
 	-echo -- $@: REPO=${REPO} TAG=${TAG} BUILD_TAG=${BUILD_TAG_PREFIX}$@ >&2
 	${HOST_BIN}/prefixout -dtc --prefix "[$@] " -- \
