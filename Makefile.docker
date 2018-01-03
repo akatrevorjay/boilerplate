@@ -31,12 +31,12 @@ HOST_DEPS += ${HOST_GOLANG_DEPS}
 
 HOST_GOLANG_IMAGE = golang:1.8
 HOST_GOLANG_BUILD_CMD ?= \
-	docker create -v /go/bin --name golang-build-out-$(notdir $@) busybox:latest /bin/true \
+	docker create -v /go/bin --name host-golang-build-out-$(notdir $@) busybox:latest /bin/true \
 	&& ( \
-	  docker run --rm --volumes-from golang-build-out-$(notdir $@) ${HOST_GOLANG_IMAGE} go get -u -v $(REPO_$@) \
-	  && docker cp golang-build-out-$(notdir $@):/go/bin/$(notdir $@) $(abspath ${BIN}) \
+	  docker run --rm --volumes-from host-golang-build-out-$(notdir $@) ${HOST_GOLANG_IMAGE} go get -u -v $(REPO_$@) \
+	  && docker cp host-golang-build-out-$(notdir $@):/go/bin/$(notdir $@) $(abspath ${BIN}) \
 	); \
-	docker rm golang-build-out-$(notdir $@)
+	docker rm host-golang-build-out-$(notdir $@)
 
 ${HOST_GOLANG_DEPS}:
 	${HOST_GOLANG_BUILD_CMD}
