@@ -2,6 +2,7 @@ version: 2
 
 jobs:
   build:
+    context: org-global
     docker:
       - image: trevorj/circleci-builder:latest
     working_directory: /app
