@@ -32,7 +32,7 @@ debug_call()     { debug 'call: %s' "$*"; "$@"; }
 : ${RUNTIME_DEFERRED:="$IMAGE_ROOT/runtime.d"}
 
 ##
-## Utils
+## Utils (must be in-process, hence placement here).
 ##
 
 abspath() {
@@ -52,19 +52,6 @@ first-in() {
 	done
 
 	return 1
-}
-
-is-newer-than() {
-	local stamp="$1"
-	local compare_to=("${@:2}")
-
-	predicate() {
-		# exists and is newer than $stamp
-		[[ -e "$fn" ]]
-		[[ "$1" -nt "$stamp" ]]
-	}
-
-	nullify first-in predicate "${compare_to[@]}"
 }
 
 abself() {

@@ -1,0 +1,19 @@
+#!/bin/bash
+set -eo pipefail
+. "${IMAGE_ROOT:?}/lib.sh"
+
+is-newer-than() {
+	local stamp="$1"
+	local compare_to=("${@:2}")
+
+	predicate() {
+		# exists and is newer than $stamp
+		[[ -e "$fn" ]]
+		[[ "$1" -nt "$stamp" ]]
+	}
+
+	nullify first-in predicate "${compare_to[@]}"
+}
+
+# magic af
+"${0##*/}" "$@"
