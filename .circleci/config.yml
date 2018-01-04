@@ -43,3 +43,12 @@ jobs:
                 master)
                   exec make -j8 push ;;
             esac
+
+workflows:
+  version: 2
+
+  build:
+    jobs:
+      - build:
+          context: org-global
+

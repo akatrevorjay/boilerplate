@@ -2,11 +2,10 @@ docker-boilerplate
 ==================
 
 Boilerplate that I end up throwing in containers constantly.
+For the most part, everything here consists of some dead simple shell scripts to make our lives easier.
 
 Rather fresh, so docs are fairly lacking. Sorry bruh.
-
-Check out `image/bin`, `image/sbin` and the `Dockerfile`. 
-Everything here is dead simple shell scripts for the most part.
+Check out `image/bin`, `image/sbin` and the `Dockerfile`.
 
 
 What is this?

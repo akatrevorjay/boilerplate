@@ -11,12 +11,40 @@ REPO ?= ${DOCKER_USER}/${DOCKER_REPO}
 # latest == LTS
 # rolling == Latest release
 # devel == Latest development release
-UBUNTU_TAGS := latest rolling devel artful zesty yakkety xenial trusty
+UBUNTU_TAGS := latest rolling devel bionic artful zesty yakkety xenial trusty
 TAGS ?= $(UBUNTU_TAGS)
 
 BUILD_TAG_PREFIX ?= build-
 
 all: build
+
+##
+## Host build deps
+##
+
+HOST_BIN ?= host/bin
+
+REPO_${HOST_BIN}/prefixout ?= github.com/akatrevorjay/$(notdir $@)
+HOST_GOLANG_DEPS += ${HOST_BIN}/prefixout
+
+HOST_DEPS += ${HOST_GOLANG_DEPS}
+
+HOST_GOLANG_IMAGE = golang:1.8
+HOST_GOLANG_BUILD_CMD ?= \
+	docker create -v /go/bin --name host-golang-build-out-$(notdir $@) busybox:latest /bin/true \
+	&& ( \
+	  docker run --rm --volumes-from host-golang-build-out-$(notdir $@) ${HOST_GOLANG_IMAGE} go get -u -v $(REPO_$@) \
+	  && docker cp host-golang-build-out-$(notdir $@):/go/bin/$(notdir $@) $(abspath ${HOST_BIN}) \
+	); \
+	docker rm host-golang-build-out-$(notdir $@)
+
+${HOST_GOLANG_DEPS}:
+	${HOST_GOLANG_BUILD_CMD}
+	test -e "$@"
+
+##
+## If we have project-level deps, we should likely build them I suppose.
+##
 
 ifneq ("$(wildcard Makefile.deps)","")
 include Makefile.deps
@@ -63,15 +91,15 @@ clean:
 	rm -rf $(addprefix Dockerfile.,$(TAGS))
 
 distclean: clean
-	rm -rf ${DEPS}
+	rm -rf ${HOST_DEPS} ${DEPS}
 
-deps: ${DEPS}
+deps: ${HOST_DEPS} ${DEPS}
 
 BUILD_ARGS ?=
 
 $(TAGS): Dockerfile deps
 	-echo -- $@: REPO=${REPO} TAG=${TAG} BUILD_TAG=${BUILD_TAG_PREFIX}$@ >&2
-	./image/bin/prefixout -dtc --prefix "[$@] " -- \
+	"${HOST_BIN}/prefixout" -dtc --prefix "[$@] " -- \
 	  docker build \
 	  ${BUILD_ARGS} \
 	  -t "${REPO}:${BUILD_TAG_PREFIX}$@" \

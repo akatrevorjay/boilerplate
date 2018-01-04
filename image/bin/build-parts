@@ -7,12 +7,13 @@ debug "parts: %s" "$*"
 # Don't cleanup apt runs inter-parts
 export cleanup=no
 
+declare rv
+
 parts=($(IFS=$'\n' run-parts --test "$@"))
 for part in "${parts[@]}"; do
 	e "[%s] exec" "$part"
 
-	if ! prefixout -dc -- "$part"; then
-    	rv=$?
+	if ! save-retval rv prefixout -dc -- "$part"; then
 		error '[%s] Failed with retcode=%d.' "$part" "$rv"
 		exit $rv
 	fi
