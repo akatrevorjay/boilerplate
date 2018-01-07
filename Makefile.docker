@@ -113,7 +113,8 @@ test: build
 		BUILD_TAG="${BUILD_TAG_PREFIX}$${TAG}"; \
 		IMAGE="${REPO}:$${BUILD_TAG}"; \
 		\
-		./tests/run-tests "$$IMAGE"; \
+		"${HOST_BIN}/prefixout" -dtc --prefix "[$${TAG}] " -- \
+			./tests/run-tests "$$IMAGE"; \
 	done
 
 tag: build
@@ -123,7 +124,8 @@ tag: build
 		BUILD_TAG="${BUILD_TAG_PREFIX}$${SRC_TAG}"; \
 		echo "-- $@: [$${SRC_TAG}=$${TAG}] BUILD_TAG=$${BUILD_TAG}" >&2; \
 		\
-		docker tag "${REPO}:$${BUILD_TAG}" "${REPO}:$${TAG}"; \
+		"${HOST_BIN}/prefixout" -dtc --prefix "[$${TAG}] " -- \
+			docker tag "${REPO}:$${BUILD_TAG}" "${REPO}:$${TAG}"; \
 	done
 
 push: tag
@@ -133,6 +135,7 @@ push: tag
 		BUILD_TAG="${BUILD_TAG_PREFIX}$${SRC_TAG}"; \
 		echo "-- $@: [$${SRC_TAG}=$${TAG}] BUILD_TAG=$${BUILD_TAG}" >&2; \
 		\
-		docker push "${REPO}:$${TAG}"; \
+		"${HOST_BIN}/prefixout" -dtc --prefix "[$${TAG}] " -- \
+			docker push "${REPO}:$${TAG}"; \
 	done
 
