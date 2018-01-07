@@ -113,8 +113,7 @@ test: build
 		BUILD_TAG="${BUILD_TAG_PREFIX}$${TAG}"; \
 		IMAGE="${REPO}:$${BUILD_TAG}"; \
 		\
-		"${HOST_BIN}/prefixout" -dtc --prefix "[$${TAG}] " -- \
-			./tests/run-tests "$$IMAGE"; \
+		./tests/run-tests "$$IMAGE"; \
 	done
 
 tag: build
