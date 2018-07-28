@@ -22,7 +22,7 @@ DEPS += ${GOLANG_DEPS}
 ## golang
 ##
 
-GOLANG_IMAGE = golang:1.8
+GOLANG_IMAGE = golang:1.10
 GOLANG_BUILD_CMD ?= \
 	docker create -v /go/bin --name golang-build-out-$(notdir $@) busybox:latest /bin/true \
 	&& ( \
