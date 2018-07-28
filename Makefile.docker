@@ -29,7 +29,7 @@ HOST_GOLANG_DEPS += ${HOST_BIN}/prefixout
 
 HOST_DEPS += ${HOST_GOLANG_DEPS}
 
-HOST_GOLANG_IMAGE = golang:1.8
+HOST_GOLANG_IMAGE = golang:1.10
 HOST_GOLANG_BUILD_CMD ?= \
 	docker create -v /go/bin --name host-golang-build-out-$(notdir $@) busybox:latest /bin/true \
 	&& ( \
