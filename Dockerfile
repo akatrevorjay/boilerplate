@@ -51,6 +51,11 @@ ADD image ./
 
 RUN build-parts build.d
 
+# CUDA stubs are places here by build.d/70-cuda-stubs
+# nvidia-docker then mounts it's volumes over top of this path, overriding the stubs.
+# This way tensorflow-gpu can be used even on cpu only nodes.
+ENV LD_LIBRARY_PATH=/usr/local/nvidia/lib:/usr/local/nvidia/lib64
+
 ENTRYPOINT ["entrypoint"]
 CMD ["bash"]
 

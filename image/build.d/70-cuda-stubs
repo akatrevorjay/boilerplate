@@ -1,0 +1,28 @@
+#!/bin/bash
+set -eo pipefail
+set -xv
+
+shopt -s nullglob
+
+: ${CUDA_ROOT:=/usr/local/cuda}
+: ${NVIDIA_DOCKER_ROOT:=/usr/local/nvidia}
+
+: ${libarch:=lib64}
+
+stubs=(libcuda.so libnvidia-ml.so)
+
+if [[ ! -e "${CUDA_ROOT:?}" ]]; then
+	echo "[$0] No CUDA installation found" >&2
+	exit 0
+fi
+
+mkcd() { mkdir -pv "$1" && cd "$1"; }
+
+mkcd "${NVIDIA_DOCKER_ROOT:?}/$libarch"
+
+for stub in "${stubs[@]}"; do
+	ln -svr "$CUDA_ROOT/$libarch/stubs/$stub" ./
+done
+
+ln -svr libcuda.so libcuda.so.1
+
