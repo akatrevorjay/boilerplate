@@ -10,6 +10,16 @@ set -eo pipefail
 : ${ENTRYPOINT_PATH:?}
 
 entrypoint-hook() {
+	if [[ $# -gt 1 ]]; then
+		local arg
+
+		for arg in "$@"; do
+			entrypoint-hook "$hook"
+		done
+
+		return
+	fi
+
 	local hook="$1"; shift
 	debug "Hook: $hook"
 
