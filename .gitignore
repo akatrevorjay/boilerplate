@@ -5,5 +5,8 @@
 /image/bin/boilr
 /image/bin/gosu
 /image/bin/dumb-init
-/Dockerfile.*
+/image/bin/envsubst
+/image/bin/prefixout
+/host/bin/
+
 /.gtm/
