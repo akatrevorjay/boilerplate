@@ -6,3 +6,4 @@
 /image/bin/gosu
 /image/bin/dumb-init
 /Dockerfile.*
+/.gtm/
